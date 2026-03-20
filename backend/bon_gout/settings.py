@@ -229,6 +229,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://bon-gout-food-ordering-platform-git-main-vikkyreddy08s-projects.vercel.app",
 ]
 
+# Allow any subdomain of vercel.app for development flexibility
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://bon-gout-food-ordering-platform.*\.vercel\.app$",
+]
+
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:

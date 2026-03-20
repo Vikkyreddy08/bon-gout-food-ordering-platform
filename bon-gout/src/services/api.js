@@ -34,6 +34,11 @@ const api = axios.create({
   baseURL: getBaseURL()
 });
 
+// DEBUG: Log the base URL to help troubleshoot deployment connectivity.
+if (process.env.NODE_ENV === 'production') {
+  console.log("🚀 API Base URL:", api.defaults.baseURL);
+}
+
 // The endpoint for getting a new access token using a refresh token.
 const REFRESH_URL = "users/token/refresh/"; // ✅ Matches backend users/urls.py
 
@@ -48,6 +53,15 @@ const REFRESH_URL = "users/token/refresh/"; // ✅ Matches backend users/urls.py
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // DEBUG: Log API errors in production to help identify connectivity or data issues.
+    if (process.env.NODE_ENV === 'production') {
+      console.error("❌ API Error:", {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+    }
+
     const originalRequest = error.config;
     // Check if the error is 401 and we haven't already tried to retry.
     if (error.response?.status === 401 && !originalRequest._retry) {
