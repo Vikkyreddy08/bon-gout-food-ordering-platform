@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+        .header { text-align: center; border-bottom: 2px solid #f97316; padding-bottom: 10px; }
+        .order-info { margin: 20px 0; }
+        .item-list { width: 100%; border-collapse: collapse; }
+        .item-list th, .item-list td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .total { font-weight: bold; font-size: 1.2em; color: #f97316; }
+        .footer { text-align: center; font-size: 0.8em; color: #777; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="color: #f97316;">Bon Gout</h1>
+            <p>Order Confirmation</p>
+        </div>
+        
+        <div class="order-info">
+            <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+            <p><strong>Customer:</strong> {{ order.customer_name }}</p>
+            <p><strong>Delivery Address:</strong> {{ order.customer_address }}</p>
+        </div>
+
+        <table class="item-list">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.order_items.all %}
+                <tr>
+                    <td>{{ item.menu_item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="text-align: right;"><strong>Total:</strong></td>
+                    <td class="total">₹{{ order.total_amount }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="footer">
+            <p>Thank you for choosing Bon Gout! We hope you enjoy your meal.</p>
+            <p>If you have any questions, contact us at orders@bon-gout.com</p>
+        </div>
+    </div>
+</body>
+</html>

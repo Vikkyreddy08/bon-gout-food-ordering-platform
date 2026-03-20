@@ -1,0 +1,1 @@
+web: gunicorn bon_gout.wsgi --log-file -
