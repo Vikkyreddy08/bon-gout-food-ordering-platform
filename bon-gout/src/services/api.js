@@ -31,7 +31,8 @@ const getBaseURL = () => {
 };
 
 const api = axios.create({
-  baseURL: getBaseURL()
+  baseURL: getBaseURL(),
+  timeout: 60000, // 60 seconds - Important for Render cold starts!
 });
 
 // DEBUG: Log the base URL to help troubleshoot deployment connectivity.
@@ -53,17 +54,18 @@ const REFRESH_URL = "users/token/refresh/"; // ✅ Matches backend users/urls.py
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // DEBUG: Log API errors in production to help identify connectivity or data issues.
-    if (process.env.NODE_ENV === 'production') {
-      console.error("❌ API Error:", {
-        url: error.config?.url,
-        status: error.response?.status,
-        data: error.response?.data
-      });
+    const originalRequest = error.config;
+
+    // 1. Handle Render Cold Start Retry (Network/Timeout errors on first load)
+    // If it's a GET request and it timed out or was a network error, try one more time.
+    if (originalRequest.method === 'get' && !originalRequest._retryCount && (error.code === 'ECONNABORTED' || !error.response)) {
+      originalRequest._retryCount = 1;
+      console.log("🕒 Backend is waking up... retrying request in 2 seconds");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return api(originalRequest);
     }
 
-    const originalRequest = error.config;
-    // Check if the error is 401 and we haven't already tried to retry.
+    // 2. Handle 401 Unauthorized (Expired Tokens)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
@@ -91,6 +93,17 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
+
+    // DEBUG: Log API errors in production to help identify connectivity or data issues.
+    if (process.env.NODE_ENV === 'production') {
+      console.error("❌ API Error:", {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+    }
+
     return Promise.reject(error);
   }
 );
