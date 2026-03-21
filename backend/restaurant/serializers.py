@@ -30,13 +30,19 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_image(self, obj):
-        """Returns the full URL for the category image."""
+        """
+        Returns the full URL for the category image.
+        PRIORITY: image_url (Remote link) > image (File upload).
+        """
+        if obj.image_url:
+            return obj.image_url
+            
         if obj.image:
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.image.url)
             return obj.image.url
-        return obj.image_url
+        return None
 
 # =========================================
 # CUSTOMER CARE SERIALIZER
@@ -80,13 +86,22 @@ class MenuItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_image(self, obj):
-        """Handles image URL logic for the dish."""
+        """
+        Handles image URL logic for the dish.
+        PRIORITY:
+        1. image_url (Remote link) - If provided, we assume the user wants this.
+        2. image (File upload) - If no remote link, use the uploaded file.
+        3. Fallback to None (Frontend will show default image).
+        """
+        if obj.image_url:
+            return obj.image_url
+            
         if obj.image:
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.image.url)
             return obj.image.url
-        return obj.image_url
+        return None
 
 # =========================================
 # ORDER ITEM SERIALIZER
@@ -103,14 +118,19 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'menu_item', 'menu_item_name', 'menu_item_image', 'quantity', 'price']
 
     def get_menu_item_image(self, obj):
-        """Fetches the image URL for the dish in the order."""
+        """
+        Fetches the image URL for the dish in the order.
+        PRIORITY: Remote URL > Local File.
+        """
         if obj.menu_item:
+            if obj.menu_item.image_url:
+                return obj.menu_item.image_url
+                
             if obj.menu_item.image:
                 request = self.context.get('request')
                 if request:
                     return request.build_absolute_uri(obj.menu_item.image.url)
                 return obj.menu_item.image.url
-            return obj.menu_item.image_url
         return None
 
 # =========================================
@@ -184,10 +204,16 @@ class CarouselSlideSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_image(self, obj):
-        """Returns the banner image URL."""
+        """
+        Returns the banner image URL.
+        PRIORITY: image_url (Remote link) > image (File upload).
+        """
+        if obj.image_url:
+            return obj.image_url
+            
         if obj.image:
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.image.url)
             return obj.image.url
-        return obj.image_url
+        return None
