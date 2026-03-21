@@ -50,7 +50,10 @@ ALLOWED_HOSTS = [
     'localhost', 
     '127.0.0.1', 
     'foodordering-n21r.onrender.com',
-    '.onrender.com'
+    '.onrender.com',
+    'bon-gout-food-ordering-platform.vercel.app',
+    'bon-gout-food-ordering-platform-rolvk1sac.vercel.app',
+    '.vercel.app' # Allow all Vercel subdomains
 ]
 
 # Add environment-specific hosts
@@ -92,6 +95,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic', # Added for whitenoise
     'django.contrib.staticfiles',
 
     # Third-party
@@ -149,14 +153,12 @@ DB_SSL_MODE = os.getenv('DB_SSL_MODE', 'REQUIRED')
 DB_CA_PATH = os.getenv('DB_SSL_CA_PATH', str(BASE_DIR / 'bon_gout' / 'ssl' / 'ca.pem'))
 
 # Determine SSL options based on environment
+db_ssl_options = {}
 if os.path.exists(DB_CA_PATH):
-    # We are likely on Render
+    # We are likely on Render or local with CA file
     db_ssl_options = {'ca': DB_CA_PATH}
-elif DEBUG:
-    # Local development - SSL might not be required
-    db_ssl_options = {} 
-else:
-    # Production but CA file missing? Fallback to mode
+elif not DEBUG:
+    # Production but CA file missing? Use mode
     db_ssl_options = {'ssl_mode': DB_SSL_MODE}
 
 DATABASES = {
@@ -176,6 +178,15 @@ DATABASES = {
 
 if db_ssl_options:
     DATABASES['default']['OPTIONS']['ssl'] = db_ssl_options
+
+# Fallback to SQLite if MySQL configuration is missing or invalid in local dev
+if DEBUG and not os.getenv('DB_HOST'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ==========================================
 # PASSWORD VALIDATION
@@ -223,31 +234,25 @@ SIMPLE_JWT = {
 # ==========================================
 # CORS
 # ==========================================
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "https://foodordering-n21r.onrender.com",
-    "https://bon-gout-food-ordering-platform.vercel.app",
-    "https://bon-gout-food-ordering-platform-rolvk1sac.vercel.app",
-    "https://bon-gout-food-ordering-platform-git-main-vikkyreddy08s-projects.vercel.app",
-]
-
-# Allow any subdomain of vercel.app for development flexibility
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://bon-gout-food-ordering-platform.*\.vercel\.app$",
-]
-
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOW_ALL_ORIGINS = False
-
+CORS_ALLOW_ALL_ORIGINS = True # Set to True for deployment debugging to rule out CORS issues
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'accept', 'accept-encoding', 'authorization', 'content-type',
     'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+]
+
+# Even though we allow all origins, we keep these for CSRF safety
+CSRF_TRUSTED_ORIGINS = [
+    'https://foodordering-n21r.onrender.com',
+    'https://bon-gout-food-ordering-platform.vercel.app',
+    'https://bon-gout-food-ordering-platform-rolvk1sac.vercel.app',
+    'https://bon-gout-food-ordering-platform-git-main-vikkyreddy08s-projects.vercel.app',
+]
+
+# Allow any subdomain of vercel.app for development flexibility
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+    r"^https://bon-gout-food-ordering-platform.*\.vercel\.app$",
 ]
 
 # ==========================================
