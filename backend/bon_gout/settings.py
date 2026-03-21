@@ -34,7 +34,9 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000 # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
+    # Render and Vercel handle HTTPS redirection at the edge/load balancer.
+    # App-level redirect can cause CORS preflight (OPTIONS) failures.
+    SECURE_SSL_REDIRECT = False 
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 else:

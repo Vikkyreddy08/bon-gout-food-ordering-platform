@@ -17,10 +17,23 @@ def health_check(request):
     return JsonResponse({
         "status": "ok", 
         "message": "Backend is running",
-        "database": db_status
+        "database": db_status,
+        "environment": "production" if not settings.DEBUG else "development"
+    })
+
+def root_view(request):
+    return JsonResponse({
+        "status": "ok",
+        "message": "Welcome to Bon Gout API",
+        "endpoints": {
+            "health": "/health/",
+            "admin": "/admin/",
+            "api": "/api/"
+        }
     })
 
 urlpatterns = [
+    path('', root_view), # Added root view
     path('health/', health_check),
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),  # ✅ Added users app
