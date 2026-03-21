@@ -113,10 +113,10 @@ export default function Cart() {
       }
 
       const { id: razorpayOrderId, amount, currency } = response.data.data;
-      const keyId = process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_YOUR_ACTUAL_KEY';
+      const keyId = process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_SToI7MbN2mghp7';
 
-      if (keyId === 'rzp_test_YOUR_ACTUAL_KEY') {
-        console.warn('Using placeholder Razorpay Key ID. Payment portal might not open.');
+      if (keyId === 'rzp_test_SToI7MbN2mghp7' && !process.env.REACT_APP_RAZORPAY_KEY_ID) {
+        console.info('Using Razorpay Test Key ID provided in code.');
       }
 
       // STEP 2: Configure and Open Razorpay Checkout Popup
