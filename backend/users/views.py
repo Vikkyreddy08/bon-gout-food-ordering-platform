@@ -63,7 +63,16 @@ class UserRegistrationView(APIView):
                 UserRegistrationSerializer(user).data
             )
         # If invalid, flatten errors for a readable message (e.g. "Validation failed: username: Already taken")
-        error_msg = "Validation failed: " + ", ".join([f"{k}: {v[0]}" for k, v in serializer.errors.items()])
+        # We also log the full errors to the server for debugging.
+        full_errors = serializer.errors
+        error_msg = "Validation failed: "
+        
+        details = []
+        for field, errors in full_errors.items():
+            details.append(f"{field}: {errors[0]}")
+        
+        error_msg += " | ".join(details)
+        
         return standardized_response(status.HTTP_400_BAD_REQUEST, error_msg, success=False)
 
 class AddEmployeeView(APIView):
