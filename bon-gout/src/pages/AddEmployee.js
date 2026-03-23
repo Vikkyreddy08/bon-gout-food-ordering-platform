@@ -10,6 +10,7 @@
 
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import api from '../services/api';
 
 export default function AddEmployee() {
@@ -22,6 +23,7 @@ export default function AddEmployee() {
     phone: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -144,16 +146,25 @@ export default function AddEmployee() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 transition-colors">Initial Password</label>
-              <input
-                id="password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full p-4 rounded-2xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shadow-sm dark:shadow-none"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-4 pr-12 rounded-2xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shadow-sm dark:shadow-none"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                </button>
+              </div>
             </div>
 
             <button

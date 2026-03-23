@@ -11,6 +11,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -29,6 +30,8 @@ export default function Login() {
     access_code: '' // Required only for Admin/Employee signup.
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showAccessCode, setShowAccessCode] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -160,16 +163,25 @@ export default function Login() {
                   <label htmlFor="access_code" className="block text-sm font-bold text-orange-500 mb-2 transition-colors">
                     {formData.role === 'admin' ? 'Admin Access Code' : 'Employee Secret Key'}
                   </label>
-                  <input
-                    id="access_code"
-                    type="password"
-                    name="access_code"
-                    value={formData.access_code}
-                    onChange={handleChange}
-                    required
-                    className="w-full p-4 rounded-2xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/30 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors placeholder:text-gray-400"
-                    placeholder={`Enter ${formData.role} code`}
-                  />
+                  <div className="relative">
+                    <input
+                      id="access_code"
+                      type={showAccessCode ? "text" : "password"}
+                      name="access_code"
+                      value={formData.access_code}
+                      onChange={handleChange}
+                      required
+                      className="w-full p-4 pr-12 rounded-2xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/30 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors placeholder:text-gray-400"
+                      placeholder={`Enter ${formData.role} code`}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+                      onClick={() => setShowAccessCode(!showAccessCode)}
+                    >
+                      {showAccessCode ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -220,16 +232,25 @@ export default function Login() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 transition-colors">Password</label>
-              <input
-                id="password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full p-4 rounded-2xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors shadow-sm dark:shadow-none"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-4 pr-12 rounded-2xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors shadow-sm dark:shadow-none"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                </button>
+              </div>
               {!isLogin && (
                 <p className="text-[10px] text-gray-500 mt-2 leading-tight transition-colors">
                   Must be 8+ characters, include uppercase, lowercase, a number, and a special character (@$!%*?&).
