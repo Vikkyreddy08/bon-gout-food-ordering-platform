@@ -232,6 +232,11 @@ const SignupFlow = () => {
         {/* STEP 2: OTP INPUT */}
         {step === 2 && (
           <form onSubmit={handleVerifyOTP} className="space-y-6 animate-fade-in-up">
+            <div className="text-center">
+              <p className="text-xs text-orange-500 font-bold mb-4 bg-orange-500/10 py-2 rounded-lg animate-pulse">
+                For testing, use code: 123456
+              </p>
+            </div>
             <div className="flex justify-center gap-2">
               {otp.map((data, index) => (
                 <input
