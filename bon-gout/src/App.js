@@ -18,6 +18,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Orders from './pages/Orders';
 import Login from './pages/Login';
+import SignupFlow from './pages/SignupFlow';
 import AdminDashboard from './pages/AdminDashboard';
 import AddEmployee from './pages/AddEmployee';
 import Navbar from './components/Navbar';
@@ -57,6 +58,7 @@ function AppContent() {
             </ProtectedRoute>
           } />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignupFlow />} />
           <Route path="/admin-dashboard" element={
             <ProtectedRoute roles={['admin']}>
               <AdminDashboard />

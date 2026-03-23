@@ -123,7 +123,7 @@ export default function Login() {
             Sign In
           </button>
           <button 
-            onClick={() => setIsLogin(false)}
+            onClick={() => navigate('/signup')}
             className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${
               !isLogin ? 'bg-orange-500 text-black shadow-lg' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
             }`}
