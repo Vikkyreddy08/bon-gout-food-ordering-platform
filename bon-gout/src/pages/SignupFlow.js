@@ -13,6 +13,7 @@ import { FaEye, FaEyeSlash, FaPhone, FaLock, FaCheckCircle } from 'react-icons/f
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const SignupFlow = () => {
   const { register, isLoggedIn } = useAuth();
@@ -63,7 +64,8 @@ const SignupFlow = () => {
       setTimer(30);
       setStep(2);
     } catch (err) {
-      // Toast handled by interceptor
+      const errorMsg = err.response?.data?.message || "Failed to send OTP. Please try again.";
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +88,8 @@ const SignupFlow = () => {
       toast.success("Phone verified successfully! ✨");
       setStep(3);
     } catch (err) {
-      // Toast handled by interceptor
+      const errorMsg = err.response?.data?.message || "Invalid OTP. Please try again.";
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -162,7 +165,8 @@ const SignupFlow = () => {
       // Force page reload or redirect to dashboard
       window.location.href = '/menu';
     } catch (err) {
-      // Error handled by interceptor
+      const errorMsg = err.response?.data?.message || "Registration failed. Please check your details.";
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
