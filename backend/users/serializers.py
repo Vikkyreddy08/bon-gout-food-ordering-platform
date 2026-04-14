@@ -50,7 +50,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         # 2. ROLE-BASED ACCESS CODE VERIFICATION
         access_code = data.get('access_code', '')
         if role == 'admin':
-            admin_code = os.getenv('ADMIN_SECRET_CODE', 'ADMIN123')
+            admin_code = os.getenv('ADMIN_SECRET_CODE')
+            if not admin_code:
+                # In development, use a fallback, but in production this must be set.
+                if os.getenv('DEBUG', 'False').lower() == 'true':
+                    admin_code = 'ADMIN123'
+                else:
+                    raise serializers.ValidationError({"access_code": "ADMIN_SECRET_CODE is not configured in the backend environment."})
             if access_code != admin_code:
                 raise serializers.ValidationError({"access_code": "Invalid access code for Admin role."})
         elif role == 'employee':
