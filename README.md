@@ -23,7 +23,8 @@ Bon Goût is a professional, full-stack food ordering application built with **R
 - **Lucide React & React Icons**: Professional iconography.
 
 ### Backend
-- **Django**: Robust Python web framework.
+- **Django**: Robust Python web framework (The primary server-side logic).
+- **Node.js**: Used for the frontend development environment, package management (NPM), and the React build process.
 - **Django REST Framework (DRF)**: Powerful toolkit for building Web APIs.
 - **SimpleJWT**: Secure JSON Web Token authentication.
 - **MySQL**: Relational database for structured data management.
