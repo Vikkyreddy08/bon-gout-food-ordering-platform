@@ -56,8 +56,9 @@ class SendOTPView(APIView):
         if not created and (timezone.now() - otp_obj.last_sent_at).total_seconds() < 30:
             return standardized_response(status.HTTP_429_TOO_MANY_REQUESTS, "Please wait 30 seconds before resending", success=False)
 
-        # Use a default OTP for all users (e.g., for development/testing)
-        otp_code = "123456" 
+        # Generate a random 6-digit OTP
+        otp_code = str(random.randint(100000, 999999)) 
+        print(f"DEBUG: OTP for {phone} is {otp_code}") # For testing purposes, normally sent via SMS
         otp_hash = hashlib.sha256(otp_code.encode()).hexdigest()
 
         # Update OTP object
