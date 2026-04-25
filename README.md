@@ -138,7 +138,7 @@ REACT_APP_RAZORPAY_KEY_ID=your_razorpay_id
 4. Access the app at `http://localhost:3000`.
 
 ## ✍️ Author
-**[Your Name]**
+**[NANDEESHWAR REDDY]**
 - GitHub: [@Vikkyreddy08](https://github.com/Vikkyreddy08)
 - Role: Full Stack Developer
 
