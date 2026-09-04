@@ -1,7 +1,8 @@
 {
   "build": {
     "env": {
-      "REACT_APP_API_URL": "https://foodordering-n21r.onrender.com/api/"
+      "REACT_APP_API_URL": "https://foodordering-n21r.onrender.com/api/",
+      "REACT_APP_GOOGLE_CLIENT_ID": "383403689217-u98mrkajj5gr3508pj7h17d8nsv3kajc.apps.googleusercontent.com"
     }
   },
   "routes": [

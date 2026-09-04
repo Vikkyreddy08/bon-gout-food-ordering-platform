@@ -110,9 +110,11 @@ function AppContent() {
  * is available to EVERY component in the project.
  */
 export default function App() {
-  // NOTE: You need to get a real Google Client ID from https://console.cloud.google.com/
-  // For now, we'll use a placeholder - you should replace this with your actual ID!
-  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+  if (!googleClientId) {
+    throw new Error('REACT_APP_GOOGLE_CLIENT_ID is not configured.');
+  }
   
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
