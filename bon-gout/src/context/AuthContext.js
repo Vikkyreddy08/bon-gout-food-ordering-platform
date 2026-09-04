@@ -230,7 +230,7 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.post("users/send-email-otp/", { email });
       toast.success(res.data.message || "OTP sent!");
-      return true;
+      return res.data;
     } catch (err) {
       const errorData = err.response?.data;
       toast.error(errorData?.message || "Failed to send OTP");

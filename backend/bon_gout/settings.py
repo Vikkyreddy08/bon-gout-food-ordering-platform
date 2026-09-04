@@ -274,6 +274,8 @@ else:
 # HTTPS API by default; set EMAIL_PROVIDER=smtp only for a host that permits SMTP.
 EMAIL_PROVIDER = os.getenv('EMAIL_PROVIDER', 'smtp' if DEBUG else 'resend').lower()
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
+# NEVER enable this in production. It returns OTPs in API responses for local testing.
+EMAIL_OTP_TEST_MODE = os.getenv('EMAIL_OTP_TEST_MODE', 'false').lower() in ('true', '1', 'yes')
 
 # Use SMTP backend by default for both development and production (sends real emails)
 # Override via EMAIL_BACKEND env var if needed (e.g., console for debugging)

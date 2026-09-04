@@ -85,7 +85,8 @@ class SendEmailOTPView(APIView):
 
         email = serializer.validated_data['email']
         try:
-            success, message = EmailOTPService.send_otp(email)
+            result = EmailOTPService.send_otp(email, include_test_otp=True)
+            success, message = result[:2]
         except Exception as e:
             logger.error(f"SendEmailOTPView error for {email[:4]}***: {str(e)}", exc_info=True)
             return standardized_response(
@@ -95,7 +96,13 @@ class SendEmailOTPView(APIView):
             )
 
         if success:
-            return standardized_response(status.HTTP_200_OK, message)
+            response_data = None
+            if len(result) > 2 and result[2] is not None:
+                response_data = {
+                    'test_mode': True,
+                    'otp': result[2],
+                }
+            return standardized_response(status.HTTP_200_OK, message, response_data)
         else:
             status_code = status.HTTP_429_TOO_MANY_REQUESTS if 'wait' in message.lower() else status.HTTP_502_BAD_GATEWAY
             return standardized_response(status_code, message, success=False)

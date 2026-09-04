@@ -53,7 +53,7 @@ class EmailOTPService:
     RESEND_COOLDOWN = 60
 
     @classmethod
-    def send_otp(cls, email):
+    def send_otp(cls, email, include_test_otp=False):
         try:
             attempt, _ = OTPAttempt.objects.get_or_create(
                 identifier=email,
@@ -96,10 +96,16 @@ class EmailOTPService:
             subject = "Your OTP for Bon Goût"
             message = f"Your OTP is: {otp}\nValid for 5 minutes."
             from_email = settings.DEFAULT_FROM_EMAIL
-            send_otp_email(subject, message, email, from_email)
+            if settings.EMAIL_OTP_TEST_MODE:
+                logger.warning("EMAIL_OTP_TEST_MODE is enabled; OTP email delivery is skipped")
+            else:
+                send_otp_email(subject, message, email, from_email)
             attempt.attempts = 0
             attempt.cooldown_until = now + timedelta(seconds=cls.RESEND_COOLDOWN)
             attempt.save()
+            if include_test_otp and settings.EMAIL_OTP_TEST_MODE:
+                logger.warning(f"Test OTP generated for {email[:4]}*** (masked); email not sent")
+                return True, "OTP generated successfully (TEST MODE).", otp
             logger.info(f"Email OTP sent to {email[:4]}*** (masked)")
             return True, "OTP sent successfully."
         except Exception as e:

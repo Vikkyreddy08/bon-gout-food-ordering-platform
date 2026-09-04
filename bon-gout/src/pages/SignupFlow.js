@@ -56,8 +56,13 @@ const SignupFlow = () => {
 
     setIsLoading(true);
     try {
-      await sendEmailOTP(email);
-      toast.success("OTP sent to your email!");
+      const response = await sendEmailOTP(email);
+      if (response?.data?.test_mode && response.data.otp) {
+        setOtp(String(response.data.otp));
+        toast.success("OTP generated in TEST MODE.");
+      } else {
+        toast.success("OTP sent to your email!");
+      }
       setTimer(30);
       setStep(2);
     } catch (err) {
