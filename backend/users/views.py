@@ -97,7 +97,7 @@ class SendEmailOTPView(APIView):
         if success:
             return standardized_response(status.HTTP_200_OK, message)
         else:
-            status_code = status.HTTP_429_TOO_MANY_REQUESTS if 'wait' in message.lower() else status.HTTP_400_BAD_REQUEST
+            status_code = status.HTTP_429_TOO_MANY_REQUESTS if 'wait' in message.lower() else status.HTTP_502_BAD_GATEWAY
             return standardized_response(status_code, message, success=False)
 
 

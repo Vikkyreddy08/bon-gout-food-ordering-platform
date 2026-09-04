@@ -1,6 +1,7 @@
 
 import logging
 import json
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from django.core.mail import send_mail
 from django.conf import settings
@@ -35,9 +36,15 @@ def send_otp_email(subject, message, recipient, from_email):
         },
         method='POST',
     )
-    with urlopen(request, timeout=15) as response:
-        if response.status not in range(200, 300):
-            raise RuntimeError(f'Resend returned HTTP {response.status}')
+    try:
+        with urlopen(request, timeout=15) as response:
+            if response.status not in range(200, 300):
+                raise RuntimeError(f'Resend returned HTTP {response.status}')
+    except HTTPError as exc:
+        error_body = exc.read().decode('utf-8', errors='replace')
+        raise RuntimeError(f'Resend rejected email ({exc.code}): {error_body}') from exc
+    except URLError as exc:
+        raise RuntimeError(f'Resend connection failed: {exc.reason}') from exc
     return 1
 
 
@@ -96,7 +103,7 @@ class EmailOTPService:
             logger.info(f"Email OTP sent to {email[:4]}*** (masked)")
             return True, "OTP sent successfully."
         except Exception as e:
-            logger.error(f"Failed to send Email OTP to {email}: {str(e)}", exc_info=True)
+            logger.error(f"Failed to send Email OTP to {email[:4]}***: {str(e)}", exc_info=True)
             return False, "Failed to send OTP. Please try again later."
 
     @classmethod
