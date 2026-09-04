@@ -1,9 +1,14 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 
-const OTPInput = ({ length = 6, onComplete, onOTPChange }) => {
-  const [otp, setOtp] = useState(new Array(length).fill(''));
+const OTPInput = ({ length = 6, value = '', onComplete, onOTPChange }) => {
+  const toOtpArray = (nextValue) => String(nextValue || '').slice(0, length).split('').concat(new Array(length).fill('')).slice(0, length);
+  const [otp, setOtp] = useState(() => toOtpArray(value));
   const inputsRef = useRef([]);
+
+  useEffect(() => {
+    setOtp(toOtpArray(value));
+  }, [value, length]);
 
   useEffect(() => {
     inputsRef.current[0]?.focus();

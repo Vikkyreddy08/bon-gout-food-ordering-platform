@@ -422,6 +422,7 @@ const SignupFlow = () => {
                   </label>
                   <OTPInput
                     length={6}
+                    value={otp}
                     onOTPChange={setOtp}
                     onComplete={handleVerifyOTP}
                   />
