@@ -267,6 +267,11 @@ else:
 # ==========================================
 # EMAIL
 # ==========================================
+# Render commonly blocks outbound SMTP connections. Set EMAIL_PROVIDER=resend
+# in production to deliver through Resend's HTTPS API instead.
+EMAIL_PROVIDER = os.getenv('EMAIL_PROVIDER', 'smtp').lower()
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
+
 # Use SMTP backend by default for both development and production (sends real emails)
 # Override via EMAIL_BACKEND env var if needed (e.g., console for debugging)
 EMAIL_BACKEND = os.getenv(
@@ -281,6 +286,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 't')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
+RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 
 # ==========================================
 # FRONTEND URL (used in email CTA links etc.)

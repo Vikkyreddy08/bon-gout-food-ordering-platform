@@ -1,5 +1,7 @@
 
 import logging
+import json
+from urllib.request import Request, urlopen
 from django.core.mail import send_mail
 from django.conf import settings
 from .otp_service import generate_otp, hash_otp, get_expiry_time, verify_otp as verify_hash
@@ -8,6 +10,35 @@ from django.utils import timezone
 from datetime import timedelta
 
 logger = logging.getLogger(__name__)
+
+
+def send_otp_email(subject, message, recipient, from_email):
+    """Send OTP through HTTPS in production, avoiding Render SMTP timeouts."""
+    if settings.EMAIL_PROVIDER != 'resend':
+        return send_mail(subject, message, from_email, [recipient], fail_silently=False)
+
+    if not settings.RESEND_API_KEY or not settings.RESEND_FROM_EMAIL:
+        raise RuntimeError('EMAIL_PROVIDER=resend requires RESEND_API_KEY and RESEND_FROM_EMAIL')
+
+    payload = json.dumps({
+        'from': settings.RESEND_FROM_EMAIL,
+        'to': [recipient],
+        'subject': subject,
+        'text': message,
+    }).encode('utf-8')
+    request = Request(
+        'https://api.resend.com/emails',
+        data=payload,
+        headers={
+            'Authorization': f'Bearer {settings.RESEND_API_KEY}',
+            'Content-Type': 'application/json',
+        },
+        method='POST',
+    )
+    with urlopen(request, timeout=15) as response:
+        if response.status not in range(200, 300):
+            raise RuntimeError(f'Resend returned HTTP {response.status}')
+    return 1
 
 
 class EmailOTPService:
@@ -58,8 +89,7 @@ class EmailOTPService:
             subject = "Your OTP for Bon Goût"
             message = f"Your OTP is: {otp}\nValid for 5 minutes."
             from_email = settings.DEFAULT_FROM_EMAIL
-            recipient_list = [email]
-            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+            send_otp_email(subject, message, email, from_email)
             attempt.attempts = 0
             attempt.cooldown_until = now + timedelta(seconds=cls.RESEND_COOLDOWN)
             attempt.save()
