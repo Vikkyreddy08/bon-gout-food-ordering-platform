@@ -283,6 +283,19 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'webmaster@localhost')
 
 # ==========================================
+# FRONTEND URL (used in email CTA links etc.)
+# ==========================================
+def _frontend_default():
+    # Sensible defaults for known deploy targets, fallback to local dev
+    if os.getenv('VERCEL_URL'):
+        return 'https://' + os.getenv('VERCEL_URL')
+    if os.getenv('REACT_APP_URL'):
+        return os.getenv('REACT_APP_URL').rstrip('/')
+    return 'http://localhost:3000'
+
+FRONTEND_URL = os.getenv('FRONTEND_URL', '').rstrip('/') or _frontend_default()
+
+# ==========================================
 # RAZORPAY
 # ==========================================
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')

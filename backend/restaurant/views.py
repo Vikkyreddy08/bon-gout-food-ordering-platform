@@ -92,7 +92,15 @@ def verify_razorpay_payment(request):
             order.status = 'confirmed'
             order.payment_id = razorpay_payment_id
             order.save()
-            send_order_invoice(order)
+            try:
+                send_order_invoice(order, subject=(
+                    f"✅ Payment confirmed! Your Bon Gout order #{order.order_number}"
+                ))
+            except Exception as mail_exc:
+                logger.error(
+                    f"Razorpay invoice email send failed for {order.order_number}: {str(mail_exc)}",
+                    exc_info=True,
+                )
             
         return standardized_response(status.HTTP_200_OK, "Payment verified and order confirmed", {
             "order_number": order.order_number,
@@ -211,7 +219,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         WORKFLOW: 
         1. Validates the cart data (payload).
         2. Uses an 'atomic transaction' to ensure the whole order is saved or nothing is.
-        3. Returns the FULL serialized order to the frontend.
+        3. For COD orders, immediately sends the confirmation email.
+           (Online/Razorpay orders get their email after payment verification.)
+        4. Returns the FULL serialized order to the frontend.
         API: POST /api/restaurant/orders/
         """
         is_valid, error_msg = validate_order_payload(request.data)
@@ -220,6 +230,17 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         try:
             order = create_order_with_items(request.user, request.data)
+
+            # Send confirmation email right away for COD (payment already "confirmed" by method)
+            payment_method = (order.payment_method or 'COD').upper()
+            if payment_method == 'COD':
+                try:
+                    send_order_invoice(order, subject=(
+                        f"🧾 {order.customer_name or 'Your'} Bon Gout order #{order.order_number} received!"
+                    ))
+                except Exception as mail_exc:
+                    logger.error(f"COD invoice email send failed for {order.order_number}: {str(mail_exc)}", exc_info=True)
+
             # Return full order details for the Success Modal
             serializer = self.get_serializer(order)
             return standardized_response(

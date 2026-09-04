@@ -15,12 +15,11 @@ import hashlib
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from django.db import transaction
+from django.utils import timezone
 from .models import Order, OrderItem, MenuItem
 from rest_framework.exceptions import ValidationError
 
-from django.utils import timezone
 import random
 import string
 
@@ -169,40 +168,75 @@ def verify_razorpay_signature(razorpay_order_id, razorpay_payment_id, razorpay_s
         logger.error(f"Signature verification failed (HMAC mismatch): {str(e)}")
         return False
 
-def send_order_invoice(order):
+def send_order_invoice(order, subject=None):
     """
-    PURPOSE: Sends a professional email receipt to the customer.
-    
-    LOGIC: 
-    - Generates a beautiful HTML email from a template.
-    - Also includes a Plain Text version for old email apps.
-    
-    ANALOGY: The digital version of a printed receipt handed to a diner.
+    PURPOSE: Sends a premium ticket-style order confirmation email (receipt)
+    to the customer. Rendered from templates/email/order_invoice.html.
+
+    TRIGGERS:
+      - COD:    Immediately when the order is created (OrderViewSet.create).
+      - ONLINE: After Razorpay signature verification succeeds
+                (verify_razorpay_payment view).
+
+    The email contains a Track button CTA. Its link is built from the
+    FRONTEND_URL setting (defaults based on deployment target, can be
+    overridden via env var).
     """
     try:
-        subject = f"Order Confirmation - Bon Gout #{order.order_number}"
-        context = {"order": order}
-        
-        # Load the beautiful HTML design
+        customer_name = (order.customer_name or '').strip() or 'there'
+        final_subject = subject or (
+            f"🎉 {customer_name}, your Bon Gout order #{order.order_number} is confirmed!"
+        )
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+
+        context = {
+            "order": order,
+            "FRONTEND_URL": frontend_url,
+        }
+
         html_content = render_to_string("email/order_invoice.html", context)
-        # Create a text-only version (fallback)
-        text_content = strip_tags(html_content)
-        
-        # Find where to send it
-        recipient = order.customer_email or order.user.email
+        # Minimal plain-text fallback for MUAs that strip HTML
+        lines = [
+            f"Thank you for ordering from Bon Gout!",
+            f"Order # {order.order_number}",
+            f"Total:  ₹{order.total_amount}",
+            f"Date:   {timezone.localtime(order.created_at).strftime('%d %b %Y · %I:%M %p') if order.created_at else '-'}",
+            f"Deliver to: {order.customer_address}",
+            f"Payment method: {order.payment_method or 'COD'}",
+            "",
+            "Items:",
+        ]
+        try:
+            for it in order.order_items.all():
+                price = float(it.price)
+                qty = int(it.quantity or 1)
+                lines.append(f"  • {it.menu_item.name}  x{qty}  = ₹{price * qty:.2f}")
+        except Exception:
+            pass
+        lines.append("")
+        lines.append(f"Track your order: {frontend_url}/orders/{order.id}")
+        text_content = "\n".join(lines)
+
+        recipient = (order.customer_email or '').strip() or getattr(order.user, 'email', '')
         if not recipient:
-            logger.warning(f"No email found for order {order.order_number}")
+            logger.warning(f"No email address available for order {order.order_number}")
             return False
 
         email = EmailMultiAlternatives(
-            subject=subject,
+            subject=final_subject,
             body=text_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[recipient]
+            to=[recipient],
+            reply_to=[settings.DEFAULT_FROM_EMAIL],
+            headers={
+                'X-Mailer': 'BonGout-Django',
+                'X-Order-Number': order.order_number,
+            },
         )
         email.attach_alternative(html_content, "text/html")
-        email.send()
+        email.send(fail_silently=False)
+        logger.info(f"Order invoice email sent for {order.order_number} -> {recipient[:4]}***")
         return True
     except Exception as e:
-        logger.error(f"Failed to send invoice email: {str(e)}")
+        logger.exception(f"Failed to send invoice email for order {getattr(order, 'order_number', '?')}: {str(e)}")
         return False
