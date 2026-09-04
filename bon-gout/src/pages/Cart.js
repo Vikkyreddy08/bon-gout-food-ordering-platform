@@ -223,22 +223,15 @@ export default function Cart() {
   };
 
   /**
-   * PURPOSE: API Call wrapper with basic retry logic.
-   * INTERVIEW NOTE: Retries help overcome temporary network glitches.
+  * PURPOSE: API call wrapper for creating the order exactly once.
+  * NOTE: Retrying a POST after a timeout can create duplicate orders.
    */
-  const callOrderAPI = async (payload, retries = 1) => {
-    for (let i = 0; i <= retries; i++) {
-      try {
-        const response = await api.post("restaurant/orders/", payload, {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 15000
-        });
-        return response.data.data; // Standardized response returns {status, message, data}
-      } catch (error) {
-        if (i === retries) throw error;
-        await new Promise(res => setTimeout(res, 1000));
-      }
-    }
+  const callOrderAPI = async (payload) => {
+    const response = await api.post("restaurant/orders/", payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 60000
+    });
+    return response.data.data; // Standardized response returns {status, message, data}
   };
 
   // ==========================================

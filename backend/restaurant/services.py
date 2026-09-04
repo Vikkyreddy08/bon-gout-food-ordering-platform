@@ -10,6 +10,7 @@ INTERACTIONS:
 
 import razorpay
 import logging
+import threading
 import hmac
 import hashlib
 from django.conf import settings
@@ -240,3 +241,11 @@ def send_order_invoice(order, subject=None):
     except Exception as e:
         logger.exception(f"Failed to send invoice email for order {getattr(order, 'order_number', '?')}: {str(e)}")
         return False
+
+def send_order_invoice_async(order, subject=None):
+    """Send the invoice outside the request so SMTP latency cannot block checkout."""
+    threading.Thread(
+        target=send_order_invoice,
+        args=(order, subject),
+        daemon=True,
+    ).start()

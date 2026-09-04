@@ -196,6 +196,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     SECURITY: Verifies ADMIN_SECRET_CODE or EMPLOYEE_SECRET_CODE during login for those roles.
     """
     def validate(self, attrs):
+        # The login form accepts either identifier, while SimpleJWT authenticates by username.
+        login_identifier = attrs.get('username', '')
+        if '@' in login_identifier:
+            account = User.objects.filter(email__iexact=login_identifier).first()
+            if account:
+                attrs['username'] = account.username
+
         # First, call the standard validation (username/password check)
         # This will raise a standard DRF error if credentials are wrong.
         data = super().validate(attrs)

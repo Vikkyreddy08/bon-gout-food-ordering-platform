@@ -29,6 +29,7 @@ from .services import (
     create_razorpay_order_api, 
     verify_razorpay_signature, 
     send_order_invoice,
+    send_order_invoice_async,
     create_order_with_items
 )
 from .middleware import log_request, staff_only, admin_only
@@ -93,8 +94,9 @@ def verify_razorpay_payment(request):
             order.payment_id = razorpay_payment_id
             order.save()
             try:
-                send_order_invoice(order, subject=(
-                    f"✅ Payment confirmed! Your Bon Gout order #{order.order_number}"
+                transaction.on_commit(lambda: send_order_invoice_async(
+                    order,
+                    subject=f"✅ Payment confirmed! Your Bon Gout order #{order.order_number}",
                 ))
             except Exception as mail_exc:
                 logger.error(
@@ -235,7 +237,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             payment_method = (order.payment_method or 'COD').upper()
             if payment_method == 'COD':
                 try:
-                    send_order_invoice(order, subject=(
+                    send_order_invoice_async(order, subject=(
                         f"🧾 {order.customer_name or 'Your'} Bon Gout order #{order.order_number} received!"
                     ))
                 except Exception as mail_exc:

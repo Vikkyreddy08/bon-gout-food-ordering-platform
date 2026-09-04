@@ -407,7 +407,6 @@ export default function Login() {
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
-                  width="100%"
                 />
               </div>
             </div>
