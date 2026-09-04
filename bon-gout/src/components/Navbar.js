@@ -19,6 +19,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   // State to manage the mobile menu (hamburger menu) visibility.
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   
   // Extracting global data from our contexts.
   const { user, isLoggedIn, logout, role, isAdmin, isEmployee } = useAuth();
@@ -34,13 +35,22 @@ export default function Navbar() {
   };
 
   /**
-   * PURPOSE: Logs the user out and cleans up state.
+   * PURPOSE: Logs the user out and cleans up state after confirmation.
    */
   const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
+  };
+
+  const confirmLogout = () => {
     logout();
     clearCart(false); // Empty the cart when logging out
     setIsMobileMenuOpen(false);
+    setIsLogoutConfirmOpen(false);
     navigate('/');
+  };
+
+  const cancelLogout = () => {
+    setIsLogoutConfirmOpen(false);
   };
 
   return (
@@ -205,6 +215,33 @@ export default function Navbar() {
           >
             Logout 👋
           </button>
+        </div>
+      )}
+
+      {isLogoutConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 p-8 shadow-2xl">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Confirm Logout</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to logout and exit your account?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={cancelLogout}
+                className="px-5 py-3 rounded-2xl border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="px-5 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition"
+              >
+                Yes, logout
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </nav>

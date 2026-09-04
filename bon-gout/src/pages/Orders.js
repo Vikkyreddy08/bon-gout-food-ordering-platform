@@ -10,14 +10,16 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { FaArrowRight } from 'react-icons/fa';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Orders() {
   // CONTEXT:
   const { user, isLoggedIn, token, isAdmin, isEmployee } = useAuth();
+  const navigate = useNavigate();
   
   // STATE:
   const [orders, setOrders] = useState([]); // List of formatted order objects.
@@ -219,10 +221,11 @@ export default function Orders() {
             filteredOrders.map((order) => (
               <div 
                 key={order.id} 
-                className={`bg-white dark:bg-white/5 rounded-3xl p-6 md:p-8 border transition-all duration-300 shadow-lg dark:shadow-none ${
+                onClick={() => navigate(`/orders/${order.id}`)}
+                className={`bg-white dark:bg-white/5 rounded-3xl p-6 md:p-8 border transition-all duration-300 shadow-lg dark:shadow-none cursor-pointer group ${
                   newOrder === order.order_number 
                     ? 'border-orange-500 ring-2 ring-orange-500/20' 
-                    : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
+                    : 'border-gray-200 dark:border-white/10 hover:border-orange-400 dark:hover:border-orange-400/50 hover:shadow-xl hover:-translate-y-0.5'
                 }`}
               >
                 <div className="flex flex-col md:flex-row justify-between gap-6">
@@ -275,24 +278,30 @@ export default function Orders() {
                       <p className="text-3xl font-black text-orange-500">₹{order.total}</p>
                     </div>
 
-                    <div className="flex gap-3">
-                      {(isAdmin || isEmployee) && order.status !== 'delivered' && order.status !== 'cancelled' && (
-                        <button 
-                          onClick={() => advanceStatus(order.id)}
-                          className="bg-green-500 hover:bg-green-600 text-black px-6 py-3 rounded-xl font-black text-sm shadow-lg shadow-green-500/20 transition-all active:scale-95"
-                        >
-                          Advance Status →
-                        </button>
-                      )}
-                      
-                      {order.status === 'pending' && (
-                        <button 
-                          onClick={() => cancelOrder(order.id)}
-                          className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-3 rounded-xl font-black text-sm border border-red-500/20 transition-all active:scale-95"
-                        >
-                          Cancel Order
-                        </button>
-                      )}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                      <div className="sm:order-first flex items-center gap-1.5 text-xs font-bold text-orange-500 dark:text-orange-400 group-hover:text-orange-600 transition-colors sm:mr-3">
+                        <span>View Details</span>
+                        <FaArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                      <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
+                        {(isAdmin || isEmployee) && order.status !== 'delivered' && order.status !== 'cancelled' && (
+                          <button 
+                            onClick={() => advanceStatus(order.id)}
+                            className="bg-green-500 hover:bg-green-600 text-black px-6 py-3 rounded-xl font-black text-sm shadow-lg shadow-green-500/20 transition-all active:scale-95"
+                          >
+                            Advance Status →
+                          </button>
+                        )}
+                        
+                        {order.status === 'pending' && (
+                          <button 
+                            onClick={() => cancelOrder(order.id)}
+                            className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-3 rounded-xl font-black text-sm border border-red-500/20 transition-all active:scale-95"
+                          >
+                            Cancel Order
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

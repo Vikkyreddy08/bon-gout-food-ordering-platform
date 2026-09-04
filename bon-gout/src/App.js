@@ -11,16 +11,20 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
 import Cart from './pages/Cart';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Orders from './pages/Orders';
+import OrderDetails from './pages/OrderDetails';
 import Login from './pages/Login';
 import SignupFlow from './pages/SignupFlow';
 import AdminDashboard from './pages/AdminDashboard';
 import AddEmployee from './pages/AddEmployee';
+import EmailOTPVerification from './pages/EmailOTPVerification';
+import ForgotPassword from './pages/ForgotPassword';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -57,8 +61,15 @@ function AppContent() {
               <Orders />
             </ProtectedRoute>
           } />
+          <Route path="/orders/:id" element={
+            <ProtectedRoute roles={['user', 'employee', 'admin']}>
+              <OrderDetails />
+            </ProtectedRoute>
+          } />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignupFlow />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-email-otp" element={<EmailOTPVerification />} />
           <Route path="/admin-dashboard" element={
             <ProtectedRoute roles={['admin']}>
               <AdminDashboard />
@@ -99,13 +110,19 @@ function AppContent() {
  * is available to EVERY component in the project.
  */
 export default function App() {
+  // NOTE: You need to get a real Google Client ID from https://console.cloud.google.com/
+  // For now, we'll use a placeholder - you should replace this with your actual ID!
+  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+  
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <CartProvider>
-          <AppContent />
-        </CartProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <ThemeProvider>
+        <AuthProvider>
+          <CartProvider>
+            <AppContent />
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   );
 }

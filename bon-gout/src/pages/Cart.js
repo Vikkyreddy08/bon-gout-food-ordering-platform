@@ -16,6 +16,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getImageUrl, DEFAULT_FOOD_IMAGE } from '../utils/imageUtils';
+import OrderSuccessModal from '../components/OrderSuccessModal';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -327,79 +328,12 @@ export default function Cart() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white pt-24 pb-12 transition-colors duration-300">
-      {/* Order Summary Modal (Production Ready) */}
-      {showSummaryModal && lastOrder && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-500">
-          <div className="bg-white dark:bg-[#1a1c1e] rounded-[3rem] p-10 max-w-2xl w-full border border-gray-200 dark:border-orange-500/20 shadow-2xl dark:shadow-[0_0_100px_rgba(249,115,22,0.15)] overflow-hidden relative transition-colors duration-300">
-            {/* Background Decoration */}
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px]"></div>
-            
-            <div className="relative text-center space-y-8">
-              <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto text-5xl animate-bounce">
-                🎉
-              </div>
-              
-              <div>
-                <h2 className="text-4xl font-black text-gray-900 dark:text-white mb-2">Order Confirmed!</h2>
-                <p className="text-gray-500 dark:text-gray-400 text-lg">Your delicious meal is being prepared.</p>
-              </div>
-
-              {/* Order Info Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-3xl border border-gray-200 dark:border-white/10 text-left">
-                  <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mb-1">Order Number</p>
-                  <p className="text-xl font-black text-orange-500">#{lastOrder.order_number}</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-3xl border border-gray-200 dark:border-white/10 text-left">
-                  <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mb-1">Est. Delivery</p>
-                  <p className="text-xl font-black text-green-600 dark:text-green-400">35 - 45 Mins</p>
-                </div>
-              </div>
-
-              {/* Items Summary */}
-              <div className="bg-gray-50 dark:bg-white/5 rounded-3xl border border-gray-200 dark:border-white/10 overflow-hidden">
-                <div className="px-6 py-4 bg-gray-100 dark:bg-white/5 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-                  <span className="font-bold text-gray-600 dark:text-gray-300">Order Summary</span>
-                  <span className="text-orange-500 font-black">₹{lastOrder.total_amount}</span>
-                </div>
-                <div className="p-6 max-h-40 overflow-y-auto space-y-3">
-                  {lastOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-sm">
-                      <span className="text-gray-500 dark:text-gray-400">{item.name || item.menu_item_name} × {item.quantity}</span>
-                      <span className="text-gray-900 dark:text-white font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4">
-                <button
-                  onClick={() => {
-                    setShowSummaryModal(false);
-                    navigate('/orders');
-                  }}
-                  className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-black font-black py-5 rounded-2xl text-xl shadow-2xl hover:scale-[1.02] active:scale-95 transition-all"
-                >
-                  Track Order Progress 🚀
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSummaryModal(false);
-                    navigate('/menu');
-                  }}
-                  className="w-full bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-bold py-4 rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 transition-all border border-gray-200 dark:border-white/10"
-                >
-                  Back to Menu
-                </button>
-              </div>
-              
-              <p className="text-[10px] text-gray-400 dark:text-gray-600 uppercase tracking-[0.2em] font-bold">
-                A confirmation email has been sent to {lastOrder.customer_email || 'your inbox'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Order Success Modal (matches provided design) */}
+      <OrderSuccessModal
+        isOpen={showSummaryModal}
+        onClose={() => setShowSummaryModal(false)}
+        order={lastOrder}
+      />
 
       {/* Page Header */}
       <div className="text-center py-20 px-4">
@@ -431,114 +365,167 @@ export default function Cart() {
         )}
 
         {/* Delivery Details Form */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
-          <h2 className="text-2xl font-black text-orange-400 mb-6 flex items-center gap-2">
-            📍 Delivery Details
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-1 space-y-2">
-              <label htmlFor="customerName" className="text-sm font-bold text-gray-600 dark:text-gray-400 ml-1">Customer Name</label>
-              <input
-                id="customerName"
-                name="customerName"
-                type="text"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Your Name"
-                className="w-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl px-6 py-4 text-gray-900 dark:text-white focus:outline-none focus:border-orange-500 transition-all shadow-sm dark:shadow-none"
-              />
+        <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] p-8 md:p-10 border border-gray-200 dark:border-gray-800 shadow-[0_25px_65px_rgba(15,23,42,0.08)] overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-56 h-56 rounded-full bg-gradient-to-br from-orange-400/20 to-yellow-400/10 blur-3xl pointer-events-none"/>
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-yellow-400 shadow-[0_12px_28px_rgba(249,115,22,0.35)] flex items-center justify-center text-2xl">
+                📍
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Delivery Details</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">Where should we deliver your order?</p>
+              </div>
             </div>
-            <div className="md:col-span-1 space-y-2">
-              <label htmlFor="customerPhone" className="text-sm font-bold text-gray-600 dark:text-gray-400 ml-1">Phone Number</label>
-              <input
-                id="customerPhone"
-                name="customerPhone"
-                type="tel"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                placeholder="10-digit number"
-                className="w-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl px-6 py-4 text-gray-900 dark:text-white focus:outline-none focus:border-orange-500 transition-all shadow-sm dark:shadow-none"
-              />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <label htmlFor="customerEmail" className="text-sm font-bold text-gray-600 dark:text-gray-400 ml-1">Email Address (for Invoice)</label>
-              <input
-                id="customerEmail"
-                name="customerEmail"
-                type="email"
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                placeholder="email@example.com"
-                className="w-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl px-6 py-4 text-gray-900 dark:text-white focus:outline-none focus:border-orange-500 transition-all shadow-sm dark:shadow-none"
-              />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <label htmlFor="customerAddress" className="text-sm font-bold text-gray-600 dark:text-gray-400 ml-1">Delivery Address</label>
-              <textarea
-                id="customerAddress"
-                name="customerAddress"
-                value={customerAddress}
-                onChange={(e) => setCustomerAddress(e.target.value)}
-                placeholder="Full delivery address"
-                rows="3"
-                className="w-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-2xl px-6 py-4 text-gray-900 dark:text-white focus:outline-none focus:border-orange-500 transition-all resize-none shadow-sm dark:shadow-none"
-              />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-bold text-gray-600 dark:text-gray-400 ml-1">Payment Method</label>
-              <div className="flex gap-4">
-                {['COD', 'ONLINE'].map((method) => (
-                  <button
-                    key={method}
-                    onClick={() => setPaymentMethod(method)}
-                    className={`flex-1 py-4 rounded-2xl font-bold transition-all shadow-sm active:scale-95 ${
-                      paymentMethod === method 
-                        ? 'bg-orange-500 text-black border-2 border-orange-500' 
-                        : 'bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 border-2 border-gray-200 dark:border-white/10 hover:border-orange-500/50'
-                    }`}
-                  >
-                    {method === 'COD' ? '💵 Cash on Delivery' : '💳 Pay Online'}
-                  </button>
-                ))}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="md:col-span-1 space-y-2">
+                <label htmlFor="customerName" className="block text-sm font-bold text-gray-600 dark:text-gray-300 ml-1 tracking-wide">Customer Name</label>
+                <div className="group relative">
+                  <div className="pointer-events-none absolute -inset-0.5 rounded-[22px] bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-yellow-500/0 opacity-0 blur transition-opacity duration-300 group-focus-within:from-orange-500/40 group-focus-within:to-yellow-500/40 group-focus-within:opacity-100"/>
+                  <input
+                    id="customerName"
+                    name="customerName"
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Your Full Name"
+                    className="relative z-10 w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-[22px] px-5 py-3.5 text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-gray-400/80 focus:outline-none focus:border-orange-500/60 dark:focus:border-orange-400/50 transition-all duration-200"
+                  />
+                </div>
+              </div>
+              <div className="md:col-span-1 space-y-2">
+                <label htmlFor="customerPhone" className="block text-sm font-bold text-gray-600 dark:text-gray-300 ml-1 tracking-wide">Phone Number</label>
+                <div className="group relative">
+                  <div className="pointer-events-none absolute -inset-0.5 rounded-[22px] bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-yellow-500/0 opacity-0 blur transition-opacity duration-300 group-focus-within:from-orange-500/40 group-focus-within:to-yellow-500/40 group-focus-within:opacity-100"/>
+                  <input
+                    id="customerPhone"
+                    name="customerPhone"
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="10-digit mobile number"
+                    className="relative z-10 w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-[22px] px-5 py-3.5 text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-gray-400/80 focus:outline-none focus:border-orange-500/60 dark:focus:border-orange-400/50 transition-all duration-200"
+                  />
+                </div>
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <label htmlFor="customerEmail" className="block text-sm font-bold text-gray-600 dark:text-gray-300 ml-1 tracking-wide">Email Address <span className="text-gray-400 dark:text-gray-500 font-normal">(for order updates & invoice)</span></label>
+                <div className="group relative">
+                  <div className="pointer-events-none absolute -inset-0.5 rounded-[22px] bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-yellow-500/0 opacity-0 blur transition-opacity duration-300 group-focus-within:from-orange-500/40 group-focus-within:to-yellow-500/40 group-focus-within:opacity-100"/>
+                  <input
+                    id="customerEmail"
+                    name="customerEmail"
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="relative z-10 w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-[22px] px-5 py-3.5 text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-gray-400/80 focus:outline-none focus:border-orange-500/60 dark:focus:border-orange-400/50 transition-all duration-200"
+                  />
+                </div>
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <label htmlFor="customerAddress" className="block text-sm font-bold text-gray-600 dark:text-gray-300 ml-1 tracking-wide">Delivery Address</label>
+                <div className="group relative">
+                  <div className="pointer-events-none absolute -inset-0.5 rounded-[22px] bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-yellow-500/0 opacity-0 blur transition-opacity duration-300 group-focus-within:from-orange-500/40 group-focus-within:to-yellow-500/40 group-focus-within:opacity-100"/>
+                  <textarea
+                    id="customerAddress"
+                    name="customerAddress"
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    placeholder="House / Flat No, Street, Area, Landmark, City, Pincode"
+                    rows="3"
+                    className="relative z-10 w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-[22px] px-5 py-3.5 text-[15px] font-medium text-slate-900 dark:text-white placeholder:text-gray-400/80 focus:outline-none focus:border-orange-500/60 dark:focus:border-orange-400/50 transition-all duration-200 resize-none"
+                  />
+                </div>
+              </div>
+              <div className="md:col-span-2 space-y-3 pt-2">
+                <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 ml-1 tracking-wide">Payment Method</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {['COD', 'ONLINE'].map((method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setPaymentMethod(method)}
+                      aria-pressed={paymentMethod === method}
+                      className={`py-4 px-4 rounded-2xl font-bold text-[14px] sm:text-sm transition-all duration-200 border-2 focus:outline-none focus:ring-4 focus:ring-orange-200/60 dark:focus:ring-orange-500/30 active:scale-[0.97] ${
+                        paymentMethod === method
+                          ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-slate-900 border-orange-500/40 shadow-[0_14px_32px_rgba(249,115,22,0.38)] hover:shadow-[0_18px_40px_rgba(249,115,22,0.45)] hover:-translate-y-0.5'
+                          : 'bg-gray-50 dark:bg-white/5 text-slate-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-orange-400/50 hover:bg-orange-50/60 dark:hover:bg-orange-500/5 hover:shadow-md hover:-translate-y-0.5'
+                      }`}
+                    >
+                      <span className="flex flex-col items-center gap-1.5">
+                        <span className="text-2xl">{method === 'COD' ? '💵' : '💳'}</span>
+                        <span>{method === 'COD' ? 'Cash on Delivery' : 'Pay Online'}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Summary Card */}
-        <div className="bg-gradient-to-r from-orange-500/10 to-yellow-500/10 backdrop-blur-xl rounded-3xl p-8 border border-orange-400/30 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center text-center md:text-left">
-            <div>
-              <div className="text-3xl md:text-4xl font-black text-orange-400">{cartItems.length} Items</div>
-              <div className="text-gray-500 dark:text-gray-400 mt-1">in your cart</div>
+        <div className="relative rounded-[2rem] p-8 md:p-10 border border-orange-400/25 dark:border-orange-400/20 shadow-[0_25px_65px_rgba(249,115,22,0.1)] overflow-hidden bg-gradient-to-br from-orange-500/12 via-yellow-500/8 to-orange-500/12 dark:from-orange-500/15 dark:via-yellow-500/10 dark:to-orange-500/15">
+          <div className="absolute -top-20 -left-16 w-56 h-56 rounded-full bg-gradient-to-br from-orange-400/25 to-yellow-400/15 blur-3xl pointer-events-none"/>
+          <div className="absolute -bottom-20 -right-16 w-56 h-56 rounded-full bg-gradient-to-tr from-yellow-400/20 to-orange-400/20 blur-3xl pointer-events-none"/>
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/60 dark:border-white/20 rounded-full px-4 py-1.5 mb-7">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
+              <span className="text-xs font-bold text-slate-700 dark:text-gray-200 tracking-wide uppercase">Order Summary</span>
             </div>
-            <div className="border-l border-gray-200 dark:border-white/20 md:pl-8 md:border-l">
-              <div className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white">₹{totalPrice}</div>
-              <div className="text-gray-500 dark:text-gray-400 text-lg mt-1">Total Amount</div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center pb-8 border-b border-orange-500/20 dark:border-white/15">
+              <div>
+                <div className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600/80 dark:text-orange-400/80 mb-1.5">Items</div>
+                <div className="text-4xl md:text-5xl font-black bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-500 bg-clip-text text-transparent leading-none">
+                  {cartItems.length}
+                </div>
+              </div>
+              <div className="md:col-span-1 md:pl-6 md:border-l border-gray-200 dark:border-white/15">
+                <div className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600/80 dark:text-orange-400/80 mb-1.5">Total</div>
+                <div className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white leading-none">
+                  ₹{totalPrice}
+                </div>
+              </div>
+              <div className="hidden md:flex md:col-span-1 md:pl-6 md:border-l border-gray-200 dark:border-white/15 flex-col gap-1 justify-center">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-gray-300">
+                  <span>🚚</span><span>Free Delivery</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-gray-300">
+                  <span>🔥</span><span>30 min Guarantee</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12 pt-8 border-t border-white/20">
-            <button
-              onClick={clearCart}
-              disabled={loading}
-              className="bg-red-600/20 hover:bg-red-600/40 text-red-100 border-2 border-red-500/40 py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
-            >
-              🗑️ Clear All Items
-            </button>
-            <button
-              onClick={handleSubmitOrder}
-              disabled={loading || authLoading}
-              className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-black font-black py-4 px-8 rounded-2xl text-lg shadow-2xl hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
-                  Creating Order...
-                </>
-              ) : (
-                '🚀 Proceed to Checkout'
-              )}
-            </button>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+              <button
+                onClick={clearCart}
+                disabled={loading}
+                className="group relative bg-white/60 dark:bg-white/5 hover:bg-red-500/15 text-red-600 dark:text-red-400 border-2 border-red-500/30 hover:border-red-500/60 py-4 px-6 rounded-2xl font-black text-base transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(239,68,68,0.2)] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+              >
+                <span className="text-xl">🗑️</span>
+                <span>Clear All</span>
+              </button>
+              <button
+                onClick={handleSubmitOrder}
+                disabled={loading || authLoading}
+                className="group relative bg-[#ff7961] hover:bg-[#ff6853] text-white font-black py-4 px-6 rounded-2xl text-base shadow-[0_18px_45px_rgba(255,121,97,0.45)] hover:shadow-[0_24px_60px_rgba(255,121,97,0.55)] hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                    Creating Order...
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xl">🚀</span>
+                    <span>Place Order</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

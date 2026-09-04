@@ -12,12 +12,52 @@ import os
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import OTP
+from .models import EmailOTP, PhoneOTP, LoginHistory
 
 User = get_user_model()
 
+
+class SendEmailOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class VerifyEmailOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    otp = serializers.CharField(max_length=6, min_length=6, required=True)
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    otp = serializers.CharField(max_length=6, min_length=6, required=True)
+    new_password = serializers.CharField(write_only=True, min_length=8, required=True)
+    confirm_password = serializers.CharField(write_only=True, min_length=8, required=True)
+
+    def validate(self, data):
+        if data.get('new_password') != data.get('confirm_password'):
+            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+        password = data.get('new_password')
+        if len(password) < 8:
+            raise serializers.ValidationError({"new_password": "Password must be at least 8 characters."})
+        if not any(c.isupper() for c in password):
+            raise serializers.ValidationError({"new_password": "Password must contain at least one uppercase letter."})
+        if not any(c.islower() for c in password):
+            raise serializers.ValidationError({"new_password": "Password must contain at least one lowercase letter."})
+        if not any(c.isdigit() for c in password):
+            raise serializers.ValidationError({"new_password": "Password must contain at least one number."})
+        return data
+
+
+class SendPhoneOTPSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=15, required=True)
+
+
+class VerifyPhoneOTPSerializer(serializers.Serializer):
+    id_token = serializers.CharField(required=True, help_text="Firebase ID token from frontend")
+    phone = serializers.CharField(max_length=15, required=False, help_text="Optional: Phone number to verify against")
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=False)
     access_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
@@ -27,6 +67,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         role = data.get('role', 'user')
         phone = data.get('phone')
+        email = data.get('email')
         
         # Admin Creator Bypass
         request = self.context.get('request')
@@ -37,15 +78,28 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         # 1. OTP VERIFICATION CHECK (Only for regular users)
         if role == 'user':
-            if not phone:
-                raise serializers.ValidationError({"phone": "Phone number is required for verification."})
-            
-            try:
-                otp_obj = OTP.objects.get(phone=phone)
-                if not otp_obj.is_verified:
-                    raise serializers.ValidationError({"otp": "Phone number not verified via OTP."})
-            except OTP.DoesNotExist:
-                raise serializers.ValidationError({"otp": "No OTP verification found for this phone number."})
+            # Check if either phone or email is verified using the active OTP tables.
+            # NOTE: Legacy `OTP` model is intentionally NOT used here to prevent the
+            # hardcoded "123456" OTP endpoint from bypassing real SMS/Email verification.
+            phone_verified = False
+            email_verified = False
+
+            if phone:
+                try:
+                    phone_otp_obj = PhoneOTP.objects.get(phone=phone)
+                    phone_verified = phone_otp_obj.is_verified
+                except PhoneOTP.DoesNotExist:
+                    pass
+
+            if email:
+                try:
+                    email_otp_obj = EmailOTP.objects.get(email=email)
+                    email_verified = email_otp_obj.is_verified
+                except EmailOTP.DoesNotExist:
+                    pass
+
+            if not phone_verified and not email_verified:
+                raise serializers.ValidationError({"otp": "Either phone number or email must be verified via OTP."})
 
         # 2. ROLE-BASED ACCESS CODE VERIFICATION
         access_code = data.get('access_code', '')
@@ -73,6 +127,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         
         INPUT: 'value' is the raw password string.
         """
+        if not value:  # Password can be optional for OTP-based registration
+            return value
+            
         if len(value) < 8:
             raise serializers.ValidationError("Password must be at least 8 characters long.")
         if not any(char.isdigit() for char in value):
@@ -91,7 +148,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         PURPOSE: Creates the new User object in the database.
         LOGIC: 
         - Removes the temporary 'access_code' field.
-        - Hashes the password securely using 'set_password'.
+        - Hashes the password securely using 'set_password' if provided.
         - Sets 'is_staff' and 'is_superuser' for admin roles.
         - Sets 'is_staff' for employee roles.
         - Saves the new user.
@@ -106,8 +163,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         elif validated_data.get('role') == 'employee':
             validated_data['is_staff'] = True
 
+        # Handle password (optional for OTP registration)
+        password = validated_data.pop('password', None)
         user = User.objects.create_user(**validated_data)
+        
+        if password:
+            user.set_password(password)
+            user.save()
+            
         return user
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """
@@ -116,6 +181,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'role', 'phone', 'is_staff']
+
+
+class LoginHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoginHistory
+        fields = '__all__'
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     """

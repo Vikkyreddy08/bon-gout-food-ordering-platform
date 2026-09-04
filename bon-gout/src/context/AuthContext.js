@@ -132,23 +132,55 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * PURPOSE: Creates a new account.
+   * PURPOSE: Creates a new account and auto-logs in the user.
    * API: POST /api/users/register/
    */
   const register = async (userData) => {
     try {
-      await api.post("users/register/", userData);
-      toast.success("Account created! Please login.");
+      const res = await api.post("users/register/", userData);
+      const data = res.data.data || res.data;
+      
+      let registeredUser = null;
+      
+      if (data?.access && data?.refresh) {
+        const { access, refresh } = data;
+        setToken(access);
+        localStorage.setItem("access_token", access);
+        localStorage.setItem("refresh_token", refresh);
+        
+        if (data?.user && typeof data.user === 'object') {
+          registeredUser = data.user;
+          setUser(registeredUser);
+        } else {
+          const userFields = {};
+          ['id', 'username', 'email', 'first_name', 'role', 'phone', 'is_staff'].forEach((k) => {
+            if (k in data) userFields[k] = data[k];
+          });
+          if (Object.keys(userFields).length > 0 && userFields.role) {
+            registeredUser = userFields;
+            setUser(registeredUser);
+          } else {
+            registeredUser = await fetchUserProfile();
+          }
+        }
+        const displayName = registeredUser?.first_name || registeredUser?.username || userData?.username || "User";
+        toast.success(`Welcome to Bon Goût, ${displayName}! ✨`);
+        return registeredUser;
+      } else {
+        const loggedInUser = await login({
+          username: userData?.email || userData?.username,
+          password: userData?.password,
+          access_code: userData?.access_code,
+        });
+        return loggedInUser;
+      }
     } catch (err) {
-      // LOGIC: Extract the standardized error message from our backend Response.
       const errorData = err.response?.data;
       let errorMsg = "Registration failed";
 
       if (errorData?.message) {
-        // If our backend sent a standardized "message" field, use it directly.
         errorMsg = errorData.message;
       } else if (errorData) {
-        // Fallback: If it's a raw validation object, join the messages.
         const fieldErrors = Object.entries(errorData)
           .map(([key, value]) => `${key}: ${Array.isArray(value) ? value[0] : value}`)
           .join(" | ");
@@ -160,12 +192,186 @@ export function AuthProvider({ children }) {
     }
   };
 
+  /**
+   * PURPOSE: Login with Google OAuth.
+   * API: POST /api/users/google-login/
+   */
+  const googleLogin = async (idToken) => {
+    try {
+      const res = await api.post("users/google-login/", { id_token: idToken });
+      const data = res.data.data || res.data;
+      const { access, refresh, user } = data;
+
+      setToken(access);
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+      setUser(user);
+      
+      const displayName = user?.first_name || user?.username || "User";
+      toast.success(`Welcome back, ${displayName}!`);
+      return user;
+    } catch (err) {
+      const errorData = err.response?.data;
+      let errorMsg = "Google login failed";
+
+      if (errorData?.message) {
+        errorMsg = errorData.message;
+      }
+      
+      toast.error(errorMsg);
+      throw err;
+    }
+  };
+
+  /**
+   * Send Email OTP
+   */
+  const sendEmailOTP = async (email) => {
+    try {
+      const res = await api.post("users/send-email-otp/", { email });
+      toast.success(res.data.message || "OTP sent!");
+      return true;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "Failed to send OTP");
+      throw err;
+    }
+  };
+
+  /**
+   * Verify Email OTP and login
+   */
+  const verifyEmailOTP = async (email, otp) => {
+    try {
+      const res = await api.post("users/verify-email-otp/", { email, otp });
+      const data = res.data.data || res.data;
+      const { access, refresh, user } = data;
+      setToken(access);
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+      setUser(user);
+      const displayName = user?.first_name || user?.username || "User";
+      toast.success(`Welcome back, ${displayName}!`);
+      return user;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "OTP verification failed");
+      throw err;
+    }
+  };
+
+  /**
+   * Send Phone OTP (Firebase) - just checks cooldown
+   */
+  const sendPhoneOTP = async (phone) => {
+    try {
+      const res = await api.post("users/send-phone-otp/", { phone });
+      toast.success(res.data.message || "OTP sent!");
+      return true;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "Failed to send OTP");
+      throw err;
+    }
+  };
+
+  /**
+   * Verify Phone OTP via Firebase token
+   */
+  const verifyPhoneOTP = async (idToken, phone) => {
+    try {
+      const res = await api.post("users/verify-phone-otp/", { id_token: idToken, phone });
+      const data = res.data.data || res.data;
+      const { access, refresh, user } = data;
+      setToken(access);
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+      setUser(user);
+      const displayName = user?.first_name || user?.username || "User";
+      toast.success(`Welcome back, ${displayName}!`);
+      return user;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "OTP verification failed");
+      throw err;
+    }
+  };
+
+  // Signup-specific verification functions (no login)
+  const verifyEmailOTPForSignup = async (email, otp) => {
+    try {
+      await api.post("users/verify-email-otp-signup/", { email, otp });
+      return true;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "OTP verification failed");
+      throw err;
+    }
+  };
+
+  const verifyPhoneOTPForSignup = async (idToken, phone) => {
+    try {
+      await api.post("users/verify-phone-otp-signup/", { id_token: idToken, phone });
+      return true;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "OTP verification failed");
+      throw err;
+    }
+  };
+
+  const sendForgotPasswordOTP = async (email) => {
+    try {
+      const res = await api.post("users/send-password-reset-otp/", { email });
+      toast.success(res.data.message || "If an account exists, a password reset OTP has been sent.");
+      return true;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "Failed to send password reset OTP.");
+      throw err;
+    }
+  };
+
+  const verifyForgotPasswordOTP = async (email, otp) => {
+    try {
+      await api.post("users/verify-password-reset-otp/", { email, otp });
+      toast.success("OTP verified! You can now set a new password.");
+      return true;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "Invalid OTP. Please try again.");
+      throw err;
+    }
+  };
+
+  const resetPassword = async ({ email, otp, new_password, confirm_password }) => {
+    try {
+      const res = await api.post("users/reset-password/", { email, otp, new_password, confirm_password });
+      toast.success(res.data.message || "Password reset successful! You can now log in.");
+      return true;
+    } catch (err) {
+      const errorData = err.response?.data;
+      toast.error(errorData?.message || "Failed to reset password. Please try again.");
+      throw err;
+    }
+  };
+
   // Values exposed to the rest of the application.
   const value = {
     user,
     token,
     login,
     register,
+    googleLogin,
+    sendEmailOTP,
+    verifyEmailOTP,
+    sendPhoneOTP,
+    verifyPhoneOTP,
+    verifyEmailOTPForSignup,
+    verifyPhoneOTPForSignup,
+    sendForgotPasswordOTP,
+    verifyForgotPasswordOTP,
+    resetPassword,
     logout,
     loading,
     isLoggedIn: !!token && !!user,

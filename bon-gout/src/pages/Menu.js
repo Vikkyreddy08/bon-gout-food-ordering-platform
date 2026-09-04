@@ -117,76 +117,78 @@ const MenuCard = React.memo(({ item, onAddToCart, onReviewClick, canReview, isUs
   const [showReviews, setShowReviews] = useState(false);
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-white/5 backdrop-blur-lg border border-gray-200 dark:border-white/10 p-4 md:p-6 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 group flex flex-col h-full shadow-lg dark:shadow-none">
+    <div className="relative rounded-[28px] bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 shadow-[0_18px_50px_rgba(15,23,42,0.08)] hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full overflow-hidden">
       {/* IMAGE CONTAINER */}
-      <div className="relative h-40 md:h-48 overflow-hidden rounded-xl mb-4">
+      <div className="relative h-40 overflow-hidden">
         <img 
           src={getImageUrl(item.image)} 
           alt={item.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
           onError={(e) => { e.target.src = DEFAULT_FOOD_IMAGE; }}
         />
-        {/* RATING BADGE */}
-        <div className="absolute top-2 right-2 bg-black/60 text-white px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold backdrop-blur flex items-center gap-1">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+        <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1 shadow-md">
           ⭐ {item.average_rating || "New"}
-          {item.total_reviews > 0 && <span className="text-gray-400 font-normal">({item.total_reviews})</span>}
+          {item.total_reviews > 0 && <span className="text-gray-500 dark:text-gray-400">({item.total_reviews})</span>}
         </div>
         {item.is_spicy && (
-          <div className="absolute top-2 left-2 bg-red-500/90 text-white px-2 py-1 rounded-full text-[10px] md:text-xs font-bold backdrop-blur">
+          <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-[11px] font-semibold shadow-md">
             🌶️ Spicy
           </div>
         )}
         {item.is_veg && (
-          <div className="absolute bottom-2 left-2 bg-green-500/90 text-white px-2 py-1 rounded-full text-[10px] md:text-xs font-bold backdrop-blur">
+          <div className="absolute top-14 left-3 bg-emerald-500 text-white px-3 py-1 rounded-full text-[11px] font-semibold shadow-md">
             🌿 Veg
           </div>
         )}
       </div>
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-lg md:text-xl font-bold line-clamp-1 text-gray-900 dark:text-white">{item.name}</h3>
-        <div className="flex gap-2">
-          {canReview && (
-            <button 
-              onClick={() => onReviewClick(item)}
-              className="text-[10px] md:text-xs text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 font-bold border-b border-orange-600/30 dark:border-orange-400/30"
-            >
-              Rate
-            </button>
-          )}
-          {item.reviews && item.reviews.length > 0 && (
-            <button 
-              onClick={() => setShowReviews(!showReviews)}
-              className="text-[10px] md:text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-bold border-b border-blue-600/30 dark:border-blue-400/30"
-            >
-              {showReviews ? "Hide" : "Reviews"}
-            </button>
-          )}
+      <div className="p-4 flex flex-col flex-1">
+        <div className="flex justify-between items-start mb-3">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{item.name}</h3>
+          <div className="flex gap-2">
+            {canReview && (
+              <button 
+                onClick={() => onReviewClick(item)}
+                className="text-[11px] text-orange-600 dark:text-orange-400 hover:text-orange-500 dark:hover:text-orange-300 font-semibold"
+              >
+                Rate
+              </button>
+            )}
+            {item.reviews && item.reviews.length > 0 && (
+              <button 
+                onClick={() => setShowReviews(!showReviews)}
+                className="text-[11px] text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 font-semibold"
+              >
+                {showReviews ? "Hide" : "Reviews"}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-      <p className="text-gray-600 dark:text-gray-400 text-xs md:text-sm mb-3 line-clamp-2 min-h-[2.5rem]">{item.description}</p>
-      
-      {/* Past Reviews Preview - TOGGLEABLE */}
-      {showReviews && item.reviews && item.reviews.length > 0 && (
-        <div className="mb-4 bg-gray-50 dark:bg-white/5 rounded-xl p-3 border border-gray-100 dark:border-white/5 animate-in slide-in-from-top-2 duration-300">
-          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-2">Latest Review</p>
-          <p className="text-[10px] md:text-xs italic text-gray-700 dark:text-gray-300">"{item.reviews[0].comment}"</p>
-          <p className="text-[10px] text-orange-600 dark:text-orange-500 font-bold mt-1">— {item.reviews[0].username}</p>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center mt-auto pt-2">
-        <div className="flex flex-col">
-          <span className="text-xl md:text-2xl font-black text-gray-900 dark:text-white">₹{item.price}</span>
-          <span className="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-tighter">⏱️ {item.prep_time || '20min'}</span>
-        </div>
-        {(!isLoggedIn || isUser) && (
-          <button 
-            onClick={() => onAddToCart(item)} 
-            className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 px-4 md:px-6 py-2 md:py-3 rounded-xl font-bold text-sm md:text-base text-black shadow-lg hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300"
-          >
-            Add
-          </button>
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 flex-1">{item.description}</p>
+        
+        {/* Past Reviews Preview - TOGGLEABLE */}
+        {showReviews && item.reviews && item.reviews.length > 0 && (
+          <div className="mb-4 bg-gray-50 dark:bg-slate-800 rounded-3xl p-3 border border-gray-100 dark:border-gray-700">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 font-bold mb-2">Latest review</p>
+            <p className="text-sm italic text-slate-700 dark:text-gray-300">"{item.reviews[0].comment}"</p>
+            <p className="mt-2 text-[11px] text-orange-600 dark:text-orange-400 font-semibold">— {item.reviews[0].username}</p>
+          </div>
         )}
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-700 mt-auto">
+          <div>
+            <span className="text-xl font-black text-orange-600 dark:text-orange-400">₹{item.price}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">⏱️ {item.prep_time || '20min'}</span>
+          </div>
+          {(!isLoggedIn || isUser) && (
+            <button 
+              onClick={() => onAddToCart(item)} 
+              className="btn-primary whitespace-nowrap py-2 px-4 text-sm"
+            >
+              Add to cart
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -334,43 +336,133 @@ export default function Menu() {
           </div>
         </div>
 
-        {/* CATEGORY FILTER BAR */}
-        <div className="flex overflow-x-auto pb-6 mb-12 gap-4 no-scrollbar">
-          <button
-            onClick={() => setActiveCategory('All')}
-            className={`px-8 py-3 rounded-2xl font-bold whitespace-nowrap transition-all ${
-              activeCategory === 'All' 
-                ? 'bg-orange-500 text-black shadow-xl scale-105' 
-                : 'bg-gray-50 dark:bg-white/5 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10'
-            }`}
+        {/* CATEGORY FILTER BAR - Modern Pill Card Style */}
+        <div className="mb-12">
+          <div
+            className="flex gap-3 md:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
           >
-            All Items
-          </button>
-          {/* LOOP: Creates a button for every category returned by the API. */}
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.name)}
-              className={`px-8 py-3 rounded-2xl font-bold whitespace-nowrap transition-all ${
-                activeCategory === cat.name 
-                  ? 'bg-orange-500 text-black shadow-xl scale-105' 
-                  : 'bg-gray-50 dark:bg-white/5 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+            <style>{`
+              .cat-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+            `}</style>
+            <div className="cat-scroll flex gap-3 md:gap-4 w-full">
+              {/* ALL ITEMS CARD */}
+              <button
+                type="button"
+                onClick={() => setActiveCategory('All')}
+                className={`group relative flex flex-col items-center justify-center gap-2 flex-shrink-0 w-20 h-24 sm:w-24 sm:h-28 md:w-28 md:h-32 rounded-3xl border transition-all duration-300 ease-out active:scale-95 ${
+                  activeCategory === 'All'
+                    ? 'bg-gradient-to-br from-orange-500 to-yellow-500 text-white border-transparent shadow-2xl shadow-orange-500/30 scale-105'
+                    : 'bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300 border-gray-200/80 dark:border-white/10 shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_30px_rgba(15,23,42,0.10)] hover:border-orange-300/60 dark:hover:border-orange-400/30 hover:-translate-y-0.5'
+                }`}
+              >
+                <span
+                  className={`text-3xl sm:text-4xl md:text-5xl leading-none transition-transform duration-300 group-active:scale-90 ${
+                    activeCategory === 'All' ? 'drop-shadow-sm' : 'group-hover:scale-110'
+                  }`}
+                >
+                  🍽️
+                </span>
+                <span
+                  className={`text-[11px] sm:text-xs font-black tracking-tight whitespace-nowrap ${
+                    activeCategory === 'All' ? 'text-white' : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  All Items
+                </span>
+                {activeCategory === 'All' && (
+                  <span className="absolute -bottom-1.5 w-10 h-1.5 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 shadow-md shadow-orange-500/40" />
+                )}
+              </button>
+
+              {/* LOOP: Creates a pill-card button for every category returned by the API. */}
+              {(() => {
+                const getIcon = (name) => {
+                  if (!name) return '🍴';
+                  const n = name.toString().toLowerCase();
+                  const iconMap = [
+                    { rx: /all|everything|menu/, i: '🍽️' },
+                    { rx: /starters?|appetizers?|entrees?|snacks?/, i: '🥗' },
+                    { rx: /main\s*course|mains|entree/, i: '🍛' },
+                    { rx: /biryani|biriyani|pulao|rice|pilaf/, i: '🍚' },
+                    { rx: /pizza/, i: '🍕' },
+                    { rx: /burger|sandwich|sub|wrap|roll/, i: '🍔' },
+                    { rx: /pasta|noodle|spaghetti|macaroni|lasagna/, i: '🍝' },
+                    { rx: /chicken|tandoori|grill|kebab|kabab|tikka/, i: '🍗' },
+                    { rx: /seafood|fish|prawn|shrimp|crab/, i: '🦐' },
+                    { rx: /mutton|beef|steak|meat|lamb/, i: '🥩' },
+                    { rx: /veg.*thali|thali|combo|meal/, i: '🥘' },
+                    { rx: /south\s*indian|dosa|idli|vada|uttapam/, i: '🥞' },
+                    { rx: /north\s*indian|punjabi|curry|dal/, i: '🍲' },
+                    { rx: /chinese|asian|noodle|soup|dim.?sum/, i: '🥡' },
+                    { rx: /italian|taco|mexican|fajita|quesadilla/, i: '🌮' },
+                    { rx: /dessert|sweet|cake|pastry|mousse/, i: '🍰' },
+                    { rx: /ice\s*cream|sundae|gelato|kulfi/, i: '🍨' },
+                    { rx: /bakery|bread|bun|pastry|croissant/, i: '🥐' },
+                    { rx: /drinks?|beverages?|juice|shake|lassi|mocktail/, i: '🥤' },
+                    { rx: /coffee|cafe|espresso|latte|mocha|cappuccino/, i: '☕' },
+                    { rx: /tea|chai/, i: '🍵' },
+                    { rx: /cocktail|alcohol|wine|beer|whiskey|vodka/, i: '🍹' },
+                    { rx: /fruit|salad|greens|healthy/, i: '🥙' },
+                    { rx: /fries|french\s*fries|chips|finger/, i: '🍟' },
+                    { rx: /bread|naan|roti|paratha|chapati|kulcha/, i: '🫓' },
+                    { rx: /soup/, i: '🍜' },
+                    { rx: /sushi|japanese|ramen/, i: '🍣' },
+                  ];
+                  const hit = iconMap.find((m) => m.rx.test(n));
+                  return hit ? hit.i : '🍴';
+                };
+
+                return categories.map((cat) => {
+                  const isActive = activeCategory === cat.name;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setActiveCategory(cat.name)}
+                      className={`group relative flex flex-col items-center justify-center gap-2 flex-shrink-0 w-20 h-24 sm:w-24 sm:h-28 md:w-28 md:h-32 rounded-3xl border transition-all duration-300 ease-out active:scale-95 ${
+                        isActive
+                          ? 'bg-gradient-to-br from-orange-500 to-yellow-500 text-white border-transparent shadow-2xl shadow-orange-500/30 scale-105'
+                          : 'bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300 border-gray-200/80 dark:border-white/10 shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_8px_30px_rgba(15,23,42,0.10)] hover:border-orange-300/60 dark:hover:border-orange-400/30 hover:-translate-y-0.5'
+                      }`}
+                    >
+                      <span
+                        className={`text-3xl sm:text-4xl md:text-5xl leading-none transition-transform duration-300 group-active:scale-90 ${
+                          isActive ? 'drop-shadow-sm' : 'group-hover:scale-110'
+                        }`}
+                      >
+                        {getIcon(cat.name)}
+                      </span>
+                      <span
+                        className={`text-[11px] sm:text-xs font-black tracking-tight whitespace-nowrap ${
+                          isActive ? 'text-white' : 'text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        {cat.name}
+                      </span>
+                      {isActive && (
+                        <span className="absolute -bottom-1.5 w-10 h-1.5 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500 shadow-md shadow-orange-500/40" />
+                      )}
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
         </div>
 
         {/* Conditional Rendering: Loading vs. Content vs. Empty */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {[...Array(8)].map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
         ) : filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {filteredItems.map((item) => (
               <MenuCard 
                 key={item.id} 

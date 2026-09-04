@@ -36,9 +36,8 @@ const api = axios.create({
 });
 
 // DEBUG: Log the base URL to help troubleshoot deployment connectivity.
-if (process.env.NODE_ENV === 'production') {
-  console.log("🚀 API Base URL:", api.defaults.baseURL);
-}
+console.log("🚀 API Base URL:", api.defaults.baseURL);
+console.log("🔍 REACT_APP_API_URL from env:", process.env.REACT_APP_API_URL);
 
 // The endpoint for getting a new access token using a refresh token.
 const REFRESH_URL = "users/token/refresh/"; // ✅ Matches backend users/urls.py

@@ -56,7 +56,7 @@ def log_request(view_func):
         # Mask sensitive fields (Security Best Practice)
         if isinstance(body, dict):
             body = body.copy()
-            for key in ['password', 'card_number', 'cvv', 'refresh']:
+            for key in ['password', 'access_code', 'card_number', 'cvv', 'refresh']:
                 if key in body:
                     body[key] = "********"
 

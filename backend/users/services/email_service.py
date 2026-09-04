@@ -1,0 +1,122 @@
+
+import logging
+from django.core.mail import send_mail
+from django.conf import settings
+from .otp_service import generate_otp, hash_otp, get_expiry_time, verify_otp as verify_hash
+from ..models import EmailOTP, OTPAttempt
+from django.utils import timezone
+from datetime import timedelta
+
+logger = logging.getLogger(__name__)
+
+
+class EmailOTPService:
+    MAX_ATTEMPTS = 5
+    RESEND_COOLDOWN = 60
+
+    @classmethod
+    def send_otp(cls, email):
+        try:
+            attempt, _ = OTPAttempt.objects.get_or_create(
+                identifier=email,
+                attempt_type='email'
+            )
+        except Exception as e:
+            logger.error(f"send_otp DB error (attempt get_or_create): {str(e)}", exc_info=True)
+            raise
+        if attempt.is_in_cooldown():
+            remaining_seconds = (attempt.cooldown_until - timezone.now()).total_seconds()
+            return False, f"Please wait {int(remaining_seconds)} seconds before resending."
+        otp = generate_otp()
+        otp_hash = hash_otp(otp)
+        expires_at = get_expiry_time()
+        now = timezone.now()
+
+        try:
+            existing = EmailOTP.objects.filter(email=email).first()
+        except Exception as e:
+            logger.error(f"send_otp DB error (filter existing): {str(e)}", exc_info=True)
+            raise
+        reset_attempts = True
+        if existing and not existing.is_verified and not existing.is_expired():
+            reset_attempts = False
+
+        try:
+            EmailOTP.objects.update_or_create(
+                email=email,
+                defaults={
+                    'otp_hash': otp_hash,
+                    'expires_at': expires_at,
+                    'is_verified': False,
+                    'attempts': 0 if reset_attempts else (existing.attempts if existing else 0),
+                }
+            )
+        except Exception as e:
+            logger.error(f"send_otp DB error (update_or_create): {str(e)}", exc_info=True)
+            raise
+        try:
+            subject = "Your OTP for Bon Goût"
+            message = f"Your OTP is: {otp}\nValid for 5 minutes."
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [email]
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+            attempt.attempts = 0
+            attempt.cooldown_until = now + timedelta(seconds=cls.RESEND_COOLDOWN)
+            attempt.save()
+            logger.info(f"Email OTP sent to {email[:4]}*** (masked)")
+            return True, "OTP sent successfully."
+        except Exception as e:
+            logger.error(f"Failed to send Email OTP to {email}: {str(e)}", exc_info=True)
+            return False, "Failed to send OTP. Please try again later."
+
+    @classmethod
+    def _verify_email_otp_record(cls, email, otp):
+        """Internal shared method: checks EmailOTP existence, expiry, replay, attempts.
+        Marks as verified on success, increments attempts on failure.
+        Returns (success: bool, message: str, otp_obj | None)."""
+        try:
+            otp_obj = EmailOTP.objects.get(email=email)
+        except EmailOTP.DoesNotExist:
+            logger.warning(f"EmailOTP missing for verify: {email[:4]}***")
+            return False, "No OTP was requested for this email. Please request a new one.", None
+        except Exception as e:
+            logger.error(f"_verify_email_otp_record DB error (get): {str(e)}", exc_info=True)
+            raise
+        if otp_obj.is_verified:
+            logger.warning(f"Replay attempt: EmailOTP already used for {email[:4]}***")
+            return False, "This OTP has already been used. Please request a new code.", None
+        if otp_obj.is_expired():
+            return False, "This OTP has expired. Please request a new code.", None
+        if otp_obj.attempts >= cls.MAX_ATTEMPTS:
+            return False, f"Too many incorrect attempts. Please request a new code.", None
+        if verify_hash(otp, otp_obj.otp_hash):
+            return True, "OTP valid.", otp_obj
+        try:
+            otp_obj.attempts += 1
+            otp_obj.save()
+        except Exception as e:
+            logger.error(f"_verify_email_otp_record DB error (save attempts): {str(e)}", exc_info=True)
+            raise
+        attempts_left = max(cls.MAX_ATTEMPTS - otp_obj.attempts, 0)
+        msg = f"Invalid OTP. {attempts_left} attempt(s) remaining." if attempts_left > 0 else "Too many incorrect attempts. Please request a new code."
+        return False, msg, None
+
+    @classmethod
+    def verify_otp(cls, email, otp):
+        """Verifies OTP for LOGIN flow (caller handles JWT issuance after success)."""
+        success, message, otp_obj = cls._verify_email_otp_record(email, otp)
+        if not success:
+            return False, message
+        otp_obj.is_verified = True
+        otp_obj.save()
+        return True, "OTP verified."
+
+    @classmethod
+    def verify_otp_for_signup(cls, email, otp):
+        """Verifies OTP for SIGNUP flow (no JWT/login; just marks the record verified)."""
+        success, message, otp_obj = cls._verify_email_otp_record(email, otp)
+        if not success:
+            return False, message
+        otp_obj.is_verified = True
+        otp_obj.save()
+        return True, "OTP verified successfully for signup."
