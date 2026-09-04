@@ -215,6 +215,9 @@ CORS_ALLOW_HEADERS = [
     'accept', 'accept-encoding', 'authorization', 'content-type',
     'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
 ]
+CORS_ALLOWED_ORIGINS = [
+    'https://bon-gout-food-ordering-platform.vercel.app',
+]
 
 # CSRF security: only trust these specific domains
 CSRF_TRUSTED_ORIGINS = [
@@ -267,9 +270,9 @@ else:
 # ==========================================
 # EMAIL
 # ==========================================
-# Render commonly blocks outbound SMTP connections. Set EMAIL_PROVIDER=resend
-# in production to deliver through Resend's HTTPS API instead.
-EMAIL_PROVIDER = os.getenv('EMAIL_PROVIDER', 'smtp').lower()
+# Render commonly blocks outbound SMTP connections. Production uses Resend's
+# HTTPS API by default; set EMAIL_PROVIDER=smtp only for a host that permits SMTP.
+EMAIL_PROVIDER = os.getenv('EMAIL_PROVIDER', 'smtp' if DEBUG else 'resend').lower()
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 
 # Use SMTP backend by default for both development and production (sends real emails)
