@@ -83,3 +83,24 @@
 
 .animate-blob { animation: blob 7s infinite; }
 
+/* Premium order toast animations */
+@keyframes toastIn {
+  0% { opacity: 0; transform: translateX(60px) scale(0.9); }
+  60% { opacity: 1; transform: translateX(-6px) scale(1.02); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toastOut {
+  0% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(40px) scale(0.95); }
+}
+@keyframes rocketBob {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-2px, -4px) rotate(-8deg); }
+}
+@keyframes scooterDrive {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-3px) rotate(-1.5deg); }
+  75% { transform: translateX(3px) rotate(1.5deg); }
+}
+.animate-scooter { animation: scooterDrive 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+

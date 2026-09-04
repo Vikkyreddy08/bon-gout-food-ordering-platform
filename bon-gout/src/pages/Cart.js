@@ -17,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getImageUrl, DEFAULT_FOOD_IMAGE } from '../utils/imageUtils';
 import OrderSuccessModal from '../components/OrderSuccessModal';
+import { showOrderConfirmedToast } from '../utils/orderToast';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function Cart() {
    * INTERVIEW NOTE: useMemo ensures this calculation only re-runs if the items list changes.
    */
   const totalPrice = useMemo(() => {
-    return cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0).toFixed(2);
+    return cartItems.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity || 1)), 0).toFixed(2);
   }, [cartItems]); 
 
   // ==========================================
@@ -139,8 +140,16 @@ export default function Cart() {
             });
 
             if (verifyRes.data.status === 'success') {
-              toast.success('Payment Verified! ✨');
               setLastOrder(djangoOrder);
+              showOrderConfirmedToast({
+                orderNumber: djangoOrder.order_number,
+                total: djangoOrder.total_amount ?? djangoOrder.total,
+                orderId: djangoOrder.id,
+                onTrack: () => {
+                  setShowSummaryModal(false);
+                  djangoOrder.id ? navigate(`/orders/${djangoOrder.id}`) : navigate('/orders');
+                },
+              });
               setShowSummaryModal(true);
               clearCart(false); // Success! Empty the cart.
             }
@@ -274,7 +283,15 @@ export default function Cart() {
       } else {
         // D2. COD Success Actions
         setLastOrder(djangoOrder);
-        toast.success(`Order #${djangoOrder.order_number} confirmed! 🚀`, { duration: 4000 });
+        showOrderConfirmedToast({
+          orderNumber: djangoOrder.order_number,
+          total: djangoOrder.total_amount ?? djangoOrder.total,
+          orderId: djangoOrder.id,
+          onTrack: () => {
+            setShowSummaryModal(false);
+            djangoOrder.id ? navigate(`/orders/${djangoOrder.id}`) : navigate('/orders');
+          },
+        });
         clearCart(false); // Empty the cart.
         setShowSummaryModal(true); // Show the success popup.
       }
@@ -568,7 +585,7 @@ export default function Cart() {
                     <span className="text-lg lg:text-xl font-bold text-orange-400">₹{item.price}</span>
                     <span className="text-gray-500 dark:text-gray-400 text-sm">× {item.quantity || 1}</span>
                     <span className="text-2xl lg:text-3xl font-black text-orange-500 ml-auto">
-                      ₹{(item.price * (item.quantity || 1)).toFixed(2)}
+                      ₹{(Number(item.price) * Number(item.quantity || 1)).toFixed(2)}
                     </span>
                   </div>
                   {item.prep && (

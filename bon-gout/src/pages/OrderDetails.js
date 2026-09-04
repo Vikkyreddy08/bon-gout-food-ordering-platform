@@ -40,6 +40,11 @@ function addMinutes(dateStr, minutes) {
   return d;
 }
 
+function toNum(val) {
+  const n = Number(val);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function OrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -307,7 +312,7 @@ export default function OrderDetails() {
                         </h4>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-xl md:text-2xl font-black text-green-600 dark:text-green-400">
-                            ₹{((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                            ₹{(toNum(item.price) * toNum(item.quantity || 1)).toFixed(2)}
                           </span>
                           <span className="px-3 py-0.5 rounded-full text-[11px] md:text-xs font-black uppercase border border-green-500/30 bg-green-500/15 text-green-600 dark:text-green-400">
                             {order.payment_method === 'COD' ? 'Paid on delivery' : 'Paid'}
@@ -324,7 +329,7 @@ export default function OrderDetails() {
                     Grand Total
                   </span>
                   <span className="text-2xl md:text-3xl font-black text-green-600 dark:text-green-400">
-                    ₹{(order.total_amount || order.total || 0).toFixed(2)}
+                    ₹{toNum(order.total_amount ?? order.total).toFixed(2)}
                   </span>
                 </div>
 
