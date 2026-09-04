@@ -403,10 +403,11 @@ export default function Login() {
                 </p>
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
               </div>
-              <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div className="flex w-full justify-center rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-md hover:shadow-lg transition-shadow duration-300">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
+                  width={350}
                 />
               </div>
             </div>
