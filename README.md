@@ -1,146 +1,154 @@
-# Bon Goût - Full-Stack Food Ordering Platform
+# Bon Gout
 
-Bon Goût is a professional, full-stack food ordering application built with **React.js** and **Django**. It features a modern, responsive UI, secure user authentication, real-time cart management, and integrated Razorpay payments.
+Bon Gout is a full-stack food ordering platform built with React and Django REST Framework. Customers can browse the menu, manage a cart, place orders, make Razorpay payments, and track order status. Staff and administrators have role-based tools for managing menu items, orders, and users.
 
-## 🚀 Features
+## Features
 
-- **User Authentication**: Secure signup and login using JWT tokens and OTP verification.
-- **Role-Based Access**: Distinct views for Customers, Employees, and Admins.
-- **Menu Management**: Browse categories, search menu items, and view item details.
-- **Cart System**: Add/remove items, update quantities, and calculate totals in real-time.
-- **Order Tracking**: Customers can view their order history and current status.
-- **Admin Dashboard**: Manage staff accounts, menu items, and view system logs.
-- **Responsive UI**: Built with Tailwind CSS for a seamless experience across all devices.
-- **Payment Integration**: Secure online payments via Razorpay.
+- JWT authentication with signup, login, OTP verification, and Google/Firebase integrations
+- Role-based access for customers, employees, and administrators
+- Menu categories, search, item details, ratings, and featured items
+- Cart management and order history
+- Razorpay payment integration
+- Admin and staff management tools
+- Responsive React interface with Tailwind CSS
 
-## 🛠 Tech Stack
+## Tech Stack
 
-### Frontend
-- **React.js**: Functional components and Hooks.
-- **Tailwind CSS**: Modern styling and responsive design.
-- **Axios**: API communication with interceptors for token management.
-- **React Context API**: Global state management (Auth, Cart, Theme).
-- **Lucide React & React Icons**: Professional iconography.
+- Frontend: React 18, React Router, Axios, Tailwind CSS, Lucide React
+- Backend: Django 5, Django REST Framework, SimpleJWT
+- Database: MySQL
+- Deployment support: Gunicorn and WhiteNoise
 
-### Backend
-- **Django**: Robust Python web framework (The primary server-side logic).
-- **Node.js**: Used for the frontend development environment, package management (NPM), and the React build process.
-- **Django REST Framework (DRF)**: Powerful toolkit for building Web APIs.
-- **SimpleJWT**: Secure JSON Web Token authentication.
-- **MySQL**: Relational database for structured data management.
-- **Whitenoise**: Efficient static file serving for production.
-
-## 📂 Project Structure
+## Project Structure
 
 ```text
-reactfn/
-├── backend/                # Django Backend
-│   ├── bon_gout/           # Project configuration (settings, urls)
-│   ├── restaurant/         # Main app (Menu, Orders, Payments)
-│   ├── users/              # User management (Auth, OTP, Profiles)
-│   ├── manage.py           # Django CLI
-│   └── requirements.txt    # Python dependencies
-├── bon-gout/               # React Frontend
-│   ├── public/             # Static assets
-│   ├── src/                
-│   │   ├── components/     # Reusable UI components
-│   │   ├── context/        # Global state providers
-│   │   ├── pages/          # Full page views
-│   │   ├── services/       # API configuration (Axios)
-│   │   └── utils/          # Helper functions
-│   ├── package.json        # Node.js dependencies
-│   └── tailwind.config.js  # Styling configuration
-└── .gitignore              # Git ignore rules
+foodweb/
+├── backend/                 # Django API
+│   ├── bon_gout/            # Project settings and URL configuration
+│   ├── restaurant/          # Menu, orders, payments, and restaurant APIs
+│   ├── users/               # Authentication and user APIs
+│   ├── manage.py
+│   └── requirements.txt
+└── bon-gout/                # React frontend
+    ├── public/
+    ├── src/
+    ├── package.json
+    └── tailwind.config.js
 ```
 
-## ⚙️ Installation & Setup
+## Requirements
 
-### Prerequisites
-- Python 3.x
-- Node.js (v16+)
-- MySQL (or SQLite for local dev)
+- Python 3.10 or newer
+- Node.js 16 or newer and npm
+- MySQL 8 or another compatible MySQL server
 
-### Backend Setup
-1. Navigate to the backend folder:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure environment variables (see below).
-5. Run migrations:
-   ```bash
-   python manage.py migrate
-   ```
-6. Start the development server:
-   ```bash
-   python manage.py runserver
-   ```
+## Local Setup
 
-### Frontend Setup
-1. Navigate to the frontend folder:
-   ```bash
-   cd bon-gout
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure environment variables (see below).
-4. Start the React app:
-   ```bash
-   npm start
-   ```
+### 1. Clone the repository
 
-## 🔑 Environment Variables
+```bash
+git clone https://github.com/Vikkyreddy08/bon-gout-food-ordering-platform.git
+cd bon-gout-food-ordering-platform
+```
 
-### Backend (`backend/.env`)
-Create a `.env` file in the `backend/` directory:
+### 2. Configure the backend
+
+```bash
+cd backend
+python -m venv venv
+
+# Windows PowerShell
+.\venv\Scripts\Activate.ps1
+
+# macOS/Linux
+# source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+Create `backend/.env` with values for your local environment:
+
 ```env
 DEBUG=True
-SECRET_KEY=your_django_secret_key
-DB_NAME=your_db_name
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-RAZORPAY_KEY_ID=your_razorpay_id
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+SECRET_KEY=replace_with_a_secure_secret
+DB_NAME=bon_gout
+DB_USER=your_mysql_user
+DB_PASSWORD=your_mysql_password
+DB_HOST=127.0.0.1
+DB_PORT=3306
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ADMIN_SECRET_CODE=your_admin_signup_code
 ```
 
-### Frontend (`bon-gout/.env`)
-Create a `.env` file in the `bon-gout/` directory:
-```env
-REACT_APP_API_URL=http://127.0.0.1:8000/api/
-REACT_APP_RAZORPAY_KEY_ID=your_razorpay_id
+Run migrations and start the API:
+
+```bash
+python manage.py migrate
+python manage.py runserver
 ```
 
-## 📡 API Endpoints
+The backend runs at `http://127.0.0.1:8000/`.
+
+### 3. Configure and start the frontend
+
+Open a second terminal:
+
+```bash
+cd bon-gout
+npm install
+```
+
+Create `bon-gout/.env`:
+
+```env
+REACT_APP_API_URL=http://127.0.0.1:8000/api/
+REACT_APP_RAZORPAY_KEY_ID=your_razorpay_key_id
+```
+
+Start the React development server:
+
+```bash
+npm start
+```
+
+The frontend runs at `http://localhost:3000/`.
+
+## Useful Commands
+
+Run these from `bon-gout/`:
+
+```bash
+npm start       # Start the development server
+npm test        # Run the test runner
+npm run build   # Create a production build
+```
+
+Run these from `backend/`:
+
+```bash
+python manage.py check       # Check the Django project
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+## API Examples
 
 | Endpoint | Method | Description |
-| :--- | :--- | :--- |
-| `/api/users/register/` | POST | Public user registration |
-| `/api/users/login/` | POST | JWT Login (returns tokens) |
-| `/api/restaurant/menu/` | GET | List all menu items |
-| `/api/restaurant/orders/` | POST | Place a new order |
-| `/api/users/profile/` | GET | Get logged-in user profile |
+| --- | --- | --- |
+| `/api/users/register/` | POST | Register a user |
+| `/api/users/login/` | POST | Log in and receive JWT tokens |
+| `/api/restaurant/menu/` | GET | List menu items |
+| `/api/restaurant/orders/` | POST | Place an order |
+| `/api/users/profile/` | GET | Get the authenticated user's profile |
 
-## 🚀 How to Run
-1. Ensure your MySQL database is running.
-2. Start the Django backend (`python manage.py runserver`).
-3. Start the React frontend (`npm start`).
-4. Access the app at `http://localhost:3000`.
+## Security Notes
 
-## ✍️ Author
-**[NANDEESHWAR REDDY]**
-- GitHub: [@Vikkyreddy08](https://github.com/Vikkyreddy08)
-- Role: Full Stack Developer
+- Keep `.env` files and production secrets out of version control.
+- Use a strong Django `SECRET_KEY` in production.
+- Set `DEBUG=False` and configure allowed hosts and CORS origins before deployment.
 
----
-*Created with ❤️ as part of the Bon Goût project.*
+## Author
+
+Nandeeshwar Reddy - [@Vikkyreddy08](https://github.com/Vikkyreddy08)
